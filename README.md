@@ -27,9 +27,11 @@ paramètres GET visibles dans l'URL (exemple : `creatures.php?type=poisson&mois=
    (le fichier `C:\wamp64\www\acnh\site\index.php` doit exister).
 2. Démarrer Wamp et attendre que l'icône soit verte.
 3. Créer la base, au choix :
-   - **phpMyAdmin** (recommandé) : ouvrir <http://localhost/phpmyadmin>, se connecter avec
-     l'utilisateur `root` sans mot de passe en choisissant le serveur **MySQL**, onglet
-     **Importer**, choisir `bdd/acnh_complet.sql.zip`, cliquer **Importer**.
+   - **phpMyAdmin** (recommandé) : l'ouvrir par le lien « phpmyadmin » de la page d'accueil
+     de Wamp (<http://localhost/>) ; son adresse contient la version, par exemple
+     <http://localhost/phpmyadmin5.2.3/>. Se connecter avec l'utilisateur `root` sans mot de
+     passe et le choix de serveur **MySQL**, onglet **Importer**, choisir
+     `bdd/acnh_complet.sql.zip`, cliquer **Importer**.
      La base `acnh` est créée (environ 3 Mo de données) ; aucune autre base n'est modifiée.
    - **Script de migration** : ouvrir <http://localhost/acnh/migration/import.php>. Le script
      recrée la base à partir des CSV du dossier `data/` (une quinzaine de secondes) et affiche
