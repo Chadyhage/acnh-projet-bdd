@@ -1,0 +1,321 @@
+// MRD (modèle relationnel) — Projet Animal Crossing : New Horizons, EPSI B1
+// À coller sur https://dbdiagram.io/d pour afficher le schéma (types, NULL, clés).
+// Généré à partir de sql/01_schema.sql (MySQL, tables InnoDB). Les CHECK sont rappelés dans les notes.
+
+Table couleur {
+  id_couleur int [pk, increment, not null]
+  nom_couleur varchar(20) [not null, unique]
+}
+
+Table lieu {
+  id_lieu int [pk, increment, not null]
+  nom_lieu varchar(120) [not null, unique, note: 'texte du Google Sheet (Where/How)']
+  zone_lieu varchar(20) [not null, note: 'regroupement pour les filtres : Mer, Rivière, Étang…']
+}
+
+Table espece {
+  id_espece int [pk, increment, not null]
+  nom_espece varchar(30) [not null, unique]
+}
+
+Table personnalite {
+  id_personnalite int [pk, increment, not null]
+  nom_personnalite varchar(20) [not null, unique]
+}
+
+Table loisir {
+  id_loisir int [pk, increment, not null]
+  nom_loisir varchar(20) [not null, unique]
+}
+
+Table style {
+  id_style int [pk, increment, not null]
+  nom_style varchar(20) [not null, unique]
+}
+
+Table categorie {
+  id_categorie int [pk, increment, not null]
+  nom_categorie varchar(30) [not null, unique, note: '= nom de l\'onglet (Housewares, Miscellaneous…)']
+}
+
+Table source {
+  id_source int [pk, increment, not null]
+  nom_source varchar(50) [not null, unique, note: 'Nook\'s Cranny, Crafting, C.J.…']
+}
+
+Table espece_fleur {
+  id_espece_fleur int [pk, increment, not null]
+  nom_espece_fleur varchar(20) [not null, unique]
+}
+
+Table creature {
+  id_creature int [pk, increment, not null]
+  id_lieu int [not null]
+  type_creature varchar(10) [not null, note: 'poisson / insecte']
+  numero_encyclopedie int [not null, note: 'colonne # (ordre de l\'encyclopédie)']
+  nom_creature varchar(50) [not null]
+  prix_vente_creature int [not null, note: 'en clochettes (entier)']
+  ombre varchar(20) [null, note: 'poissons uniquement']
+  difficulte varchar(20) [null, note: 'poissons uniquement']
+  meteo varchar(20) [not null, note: 'Any weather / Any except rain / Rain only']
+  captures_requises int [not null, note: 'captures totales avant apparition']
+  description text [not null]
+  phrase_capture text [not null]
+  nom_fichier_creature varchar(40) [not null, note: 'image = CDN + /MenuIcon/ + fichier + .png']
+
+  indexes {
+    (type_creature, nom_creature) [unique]
+    (type_creature, numero_encyclopedie) [unique]
+  }
+
+  Note: 'Contraintes CHECK : (type_creature IN (\'poisson\', \'insecte\')) ; (prix_vente_creature >= 0)'
+}
+
+Table disponibilite {
+  id_disponibilite int [pk, increment, not null]
+  id_creature int [not null]
+  hemisphere char(2) [not null, note: 'NH (nord) / SH (sud)']
+  mois int [not null]
+  heure_debut int [not null, note: 'incluse']
+  heure_fin int [not null, note: 'exclue']
+
+  indexes {
+    (id_creature, hemisphere, mois, heure_debut) [unique]
+    (hemisphere, mois) [name: 'idx_dispo_moment', note: 'recherche « disponible à l\'instant T »']
+  }
+
+  Note: 'Contraintes CHECK : (hemisphere IN (\'NH\', \'SH\')) ; (mois BETWEEN 1 AND 12) ; (heure_debut BETWEEN 0 AND 23) ; (heure_fin BETWEEN 1 AND 24)'
+}
+
+Table villageois {
+  id_villageois int [pk, increment, not null]
+  id_espece int [not null]
+  id_personnalite int [not null]
+  id_loisir int [not null]
+  nom_villageois varchar(30) [not null, unique]
+  genre varchar(10) [not null, note: 'Male / Female']
+  sous_type char(1) [not null, note: 'A / B']
+  jour_anniversaire int [not null]
+  mois_anniversaire int [not null]
+  phrase_fetiche varchar(50) [not null]
+  chanson_preferee varchar(50) [not null]
+  citation_preferee text [not null]
+  version_ajout_villageois varchar(10) [not null]
+  nom_fichier_villageois varchar(20) [not null, note: 'image = CDN + /NpcIcon/ + fichier + .png']
+
+  Note: 'Contraintes CHECK : (genre IN (\'Male\', \'Female\')) ; (sous_type IN (\'A\', \'B\')) ; (jour_anniversaire BETWEEN 1 AND 31) ; (mois_anniversaire BETWEEN 1 AND 12)'
+}
+
+Table meuble {
+  id_meuble int [pk, increment, not null]
+  id_categorie int [not null]
+  nom_meuble varchar(100) [not null]
+  prix_achat int [null, note: 'NULL = NFS (pas en vente)']
+  prix_vente_meuble int [not null]
+  bricolable boolean [not null, note: 'colonne DIY']
+  personnalisable boolean [not null, note: 'colonne Body Customize']
+  taille varchar(10) [not null, note: 'ex. 2x1 (en cases)']
+  exterieur boolean [not null, note: 'colonne Outdoor']
+  etiquette varchar(40) [not null, note: 'colonne Tag (Table, Chair…)']
+  serie varchar(40) [null, note: 'colonne HHA Series (NULL = aucune)']
+  catalogue varchar(20) [not null, note: 'For sale / Not for sale / Seasonal / Not in catalog']
+  exclusif_evenement boolean [null, note: 'NULL = meuble sans saison/événement']
+  points_hha int [not null]
+  version_ajout_meuble varchar(10) [not null]
+  id_interne int [not null, unique, note: 'Internal ID du jeu (sert à relier les villageois)']
+
+  Note: 'Contraintes CHECK : (prix_achat IS NULL OR prix_achat >= 0) ; (prix_vente_meuble >= 0)'
+}
+
+Table variante {
+  id_variante int [pk, increment, not null]
+  id_meuble int [not null]
+  nom_variation varchar(60) [null, note: 'NULL = pas de variation']
+  nom_motif varchar(60) [null, note: 'NULL = pas de motif']
+  nom_fichier_variante varchar(80) [not null, note: 'image = CDN + /FtrIcon/ + fichier + .png']
+  id_unique varchar(20) [not null, unique, note: 'Unique Entry ID du Google Sheet']
+}
+
+Table evenement {
+  id_evenement int [pk, increment, not null]
+  nom_evenement varchar(80) [not null, unique, note: 'clé de liaison avec la colonne Season/Event des meubles']
+  type_evenement varchar(30) [not null, note: 'Calendar season, Special event…']
+  nom_affiche varchar(80) [not null]
+  date_variable boolean [not null, note: 'la date change selon l\'année']
+}
+
+Table periode {
+  id_periode int [pk, increment, not null]
+  id_evenement int [not null]
+  annee int [not null]
+  hemisphere_periode char(2) [not null]
+  date_debut date [not null]
+  date_fin date [not null]
+
+  indexes {
+    (id_evenement, annee, hemisphere_periode) [unique]
+    (hemisphere_periode, date_debut, date_fin) [name: 'idx_periode_dates', note: 'recherche par date']
+  }
+
+  Note: 'Contraintes CHECK : (hemisphere_periode IN (\'NH\', \'SH\')) ; (date_fin >= date_debut)'
+}
+
+Table fleur {
+  id_fleur int [pk, increment, not null]
+  id_espece_fleur int [not null]
+  id_couleur int [not null]
+  origine_fleur varchar(10) [not null, note: 'Graine (sac de graines) / Hybride']
+  prix_vente_fleur int [not null]
+
+  indexes {
+    (id_espece_fleur, id_couleur) [unique]
+  }
+
+  Note: 'Contraintes CHECK : (origine_fleur IN (\'Graine\', \'Hybride\'))'
+}
+
+Table genotype {
+  id_genotype int [pk, increment, not null]
+  id_fleur int [not null, note: 'couleur visible produite par ce génotype']
+  code_genotype varchar(4) [not null, note: 'gènes R, Y, W (+ S pour les roses), valeurs 0/1/2 ; ex. 2001']
+  est_graine boolean [not null, note: 'génotype des fleurs vendues en sac de graines']
+
+  indexes {
+    (id_fleur, code_genotype) [unique]
+  }
+
+  Note: 'Contraintes CHECK : (code_genotype REGEXP \'^[012]{3,4}$\')'
+}
+
+Table aimer {
+  id_villageois int [not null]
+  id_style int [not null]
+
+  indexes {
+    (id_villageois, id_style) [pk]
+  }
+}
+
+Table preferer {
+  id_villageois int [not null]
+  id_couleur int [not null]
+
+  indexes {
+    (id_villageois, id_couleur) [pk]
+  }
+}
+
+Table meubler {
+  id_villageois int [not null]
+  id_meuble int [not null]
+  quantite int [not null, default: 1]
+
+  indexes {
+    (id_villageois, id_meuble) [pk]
+  }
+
+  Note: 'Contraintes CHECK : (quantite >= 1)'
+}
+
+Table colorer {
+  id_variante int [not null]
+  id_couleur int [not null]
+
+  indexes {
+    (id_variante, id_couleur) [pk]
+  }
+}
+
+Table provenir {
+  id_meuble int [not null]
+  id_source int [not null]
+
+  indexes {
+    (id_meuble, id_source) [pk]
+  }
+}
+
+Table proposer {
+  id_meuble int [not null]
+  id_evenement int [not null]
+
+  indexes {
+    (id_meuble, id_evenement) [pk]
+  }
+}
+
+Table croiser {
+  id_genotype_parent_1 int [not null]
+  id_genotype_parent_2 int [not null]
+  id_fleur_enfant int [not null]
+  probabilite decimal(9,8) [not null, note: 'valeur exacte : multiple de 1/64 (1/256 pour les roses)']
+
+  indexes {
+    (id_genotype_parent_1, id_genotype_parent_2, id_fleur_enfant) [pk]
+  }
+
+  Note: 'Contraintes CHECK : (probabilite > 0 AND probabilite <= 1)'
+}
+
+Ref: creature.id_lieu > lieu.id_lieu
+Ref: disponibilite.id_creature > creature.id_creature [delete: cascade]
+Ref: villageois.id_espece > espece.id_espece
+Ref: villageois.id_personnalite > personnalite.id_personnalite
+Ref: villageois.id_loisir > loisir.id_loisir
+Ref: meuble.id_categorie > categorie.id_categorie
+Ref: variante.id_meuble > meuble.id_meuble [delete: cascade]
+Ref: periode.id_evenement > evenement.id_evenement [delete: cascade]
+Ref: fleur.id_espece_fleur > espece_fleur.id_espece_fleur
+Ref: fleur.id_couleur > couleur.id_couleur
+Ref: genotype.id_fleur > fleur.id_fleur
+Ref: aimer.id_villageois > villageois.id_villageois [delete: cascade]
+Ref: aimer.id_style > style.id_style
+Ref: preferer.id_villageois > villageois.id_villageois [delete: cascade]
+Ref: preferer.id_couleur > couleur.id_couleur
+Ref: meubler.id_villageois > villageois.id_villageois [delete: cascade]
+Ref: meubler.id_meuble > meuble.id_meuble [delete: cascade]
+Ref: colorer.id_variante > variante.id_variante [delete: cascade]
+Ref: colorer.id_couleur > couleur.id_couleur
+Ref: provenir.id_meuble > meuble.id_meuble [delete: cascade]
+Ref: provenir.id_source > source.id_source
+Ref: proposer.id_meuble > meuble.id_meuble [delete: cascade]
+Ref: proposer.id_evenement > evenement.id_evenement
+Ref: croiser.id_genotype_parent_1 > genotype.id_genotype
+Ref: croiser.id_genotype_parent_2 > genotype.id_genotype
+Ref: croiser.id_fleur_enfant > fleur.id_fleur
+
+TableGroup "Créatures" {
+  creature
+  lieu
+  disponibilite
+}
+TableGroup "Villageois" {
+  villageois
+  espece
+  personnalite
+  loisir
+  style
+  aimer
+  preferer
+  meubler
+}
+TableGroup "Meubles" {
+  meuble
+  categorie
+  variante
+  source
+  evenement
+  periode
+  colorer
+  provenir
+  proposer
+}
+TableGroup "Fleurs" {
+  espece_fleur
+  fleur
+  genotype
+  croiser
+}
+TableGroup "Partagé" {
+  couleur
+}
