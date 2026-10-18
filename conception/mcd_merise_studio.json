@@ -871,129 +871,25 @@
           "comment": ""
         }
       ]
-    },
-    {
-      "id": "el_91",
-      "name": "fleur",
-      "x": 1599,
-      "y": 1668,
-      "properties": [
-        {
-          "id": "el_92",
-          "name": "id_fleur",
-          "type": "INT",
-          "isIdentifier": true,
-          "nullable": false,
-          "unsigned": false,
-          "autoIncrement": true,
-          "comment": ""
-        },
-        {
-          "id": "el_93",
-          "name": "origine_fleur",
-          "type": "VARCHAR(10)",
-          "isIdentifier": false,
-          "nullable": false,
-          "unsigned": false,
-          "autoIncrement": false,
-          "comment": "Graine / Hybride"
-        },
-        {
-          "id": "el_94",
-          "name": "prix_vente_fleur",
-          "type": "INT",
-          "isIdentifier": false,
-          "nullable": false,
-          "unsigned": false,
-          "autoIncrement": false,
-          "comment": ""
-        }
-      ]
-    },
-    {
-      "id": "el_95",
-      "name": "espece_fleur",
-      "x": 2118,
-      "y": 1679,
-      "properties": [
-        {
-          "id": "el_96",
-          "name": "id_espece_fleur",
-          "type": "INT",
-          "isIdentifier": true,
-          "nullable": false,
-          "unsigned": false,
-          "autoIncrement": true,
-          "comment": ""
-        },
-        {
-          "id": "el_97",
-          "name": "nom_espece_fleur",
-          "type": "VARCHAR(20)",
-          "isIdentifier": false,
-          "nullable": false,
-          "unsigned": false,
-          "autoIncrement": false,
-          "comment": ""
-        }
-      ]
-    },
-    {
-      "id": "el_98",
-      "name": "genotype",
-      "x": 1599,
-      "y": 2006,
-      "properties": [
-        {
-          "id": "el_99",
-          "name": "id_genotype",
-          "type": "INT",
-          "isIdentifier": true,
-          "nullable": false,
-          "unsigned": false,
-          "autoIncrement": true,
-          "comment": ""
-        },
-        {
-          "id": "el_100",
-          "name": "code_genotype",
-          "type": "VARCHAR(4)",
-          "isIdentifier": false,
-          "nullable": false,
-          "unsigned": false,
-          "autoIncrement": false,
-          "comment": "ex. 2001 = RR yy ww Ss"
-        },
-        {
-          "id": "el_101",
-          "name": "est_graine",
-          "type": "BOOLEAN",
-          "isIdentifier": false,
-          "nullable": false,
-          "unsigned": false,
-          "autoIncrement": false,
-          "comment": ""
-        }
-      ]
     }
   ],
   "associations": [
     {
-      "id": "el_102",
+      "id": "el_91",
       "name": "vivre",
       "x": 320,
       "y": 190,
       "pkMode": "composite",
       "links": [
         {
-          "id": "el_103",
+          "id": "el_92",
           "entityId": "el_5",
           "cardMin": "1",
           "cardMax": "1",
           "role": ""
         },
         {
-          "id": "el_104",
+          "id": "el_93",
           "entityId": "el_1",
           "cardMin": "1",
           "cardMax": "N",
@@ -1003,21 +899,21 @@
       "properties": []
     },
     {
-      "id": "el_105",
+      "id": "el_94",
       "name": "apparaitre",
       "x": 828,
       "y": 190,
       "pkMode": "composite",
       "links": [
         {
-          "id": "el_106",
+          "id": "el_95",
           "entityId": "el_5",
           "cardMin": "1",
           "cardMax": "N",
           "role": ""
         },
         {
-          "id": "el_107",
+          "id": "el_96",
           "entityId": "el_18",
           "cardMin": "1",
           "cardMax": "1",
@@ -1027,21 +923,21 @@
       "properties": []
     },
     {
-      "id": "el_108",
+      "id": "el_97",
       "name": "appartenir",
       "x": 1889,
       "y": 417,
       "pkMode": "composite",
       "links": [
         {
-          "id": "el_109",
+          "id": "el_98",
           "entityId": "el_30",
           "cardMin": "1",
           "cardMax": "1",
           "role": ""
         },
         {
-          "id": "el_110",
+          "id": "el_99",
           "entityId": "el_27",
           "cardMin": "1",
           "cardMax": "N",
@@ -1051,21 +947,21 @@
       "properties": []
     },
     {
-      "id": "el_111",
+      "id": "el_100",
       "name": "caracteriser",
       "x": 1863,
       "y": 692,
       "pkMode": "composite",
       "links": [
         {
-          "id": "el_112",
+          "id": "el_101",
           "entityId": "el_30",
           "cardMin": "1",
           "cardMax": "1",
           "role": ""
         },
         {
-          "id": "el_113",
+          "id": "el_102",
           "entityId": "el_42",
           "cardMin": "1",
           "cardMax": "N",
@@ -1075,21 +971,21 @@
       "properties": []
     },
     {
-      "id": "el_114",
+      "id": "el_103",
       "name": "pratiquer",
       "x": 1895,
       "y": 988,
       "pkMode": "composite",
       "links": [
         {
-          "id": "el_115",
+          "id": "el_104",
           "entityId": "el_30",
           "cardMin": "1",
           "cardMax": "1",
           "role": ""
         },
         {
-          "id": "el_116",
+          "id": "el_105",
           "entityId": "el_45",
           "cardMin": "1",
           "cardMax": "N",
@@ -1099,21 +995,21 @@
       "properties": []
     },
     {
-      "id": "el_117",
+      "id": "el_106",
       "name": "aimer",
       "x": 1609,
       "y": 392,
       "pkMode": "composite",
       "links": [
         {
-          "id": "el_118",
+          "id": "el_107",
           "entityId": "el_30",
           "cardMin": "1",
           "cardMax": "N",
           "role": ""
         },
         {
-          "id": "el_119",
+          "id": "el_108",
           "entityId": "el_24",
           "cardMin": "0",
           "cardMax": "N",
@@ -1123,21 +1019,21 @@
       "properties": []
     },
     {
-      "id": "el_120",
+      "id": "el_109",
       "name": "preferer",
       "x": 1609,
       "y": 1010,
       "pkMode": "composite",
       "links": [
         {
-          "id": "el_121",
+          "id": "el_110",
           "entityId": "el_30",
           "cardMin": "1",
           "cardMax": "N",
           "role": ""
         },
         {
-          "id": "el_122",
+          "id": "el_111",
           "entityId": "el_48",
           "cardMin": "0",
           "cardMax": "N",
@@ -1147,21 +1043,21 @@
       "properties": []
     },
     {
-      "id": "el_123",
+      "id": "el_112",
       "name": "meubler",
       "x": 1085,
       "y": 964,
       "pkMode": "composite",
       "links": [
         {
-          "id": "el_124",
+          "id": "el_113",
           "entityId": "el_30",
           "cardMin": "0",
           "cardMax": "N",
           "role": ""
         },
         {
-          "id": "el_125",
+          "id": "el_114",
           "entityId": "el_54",
           "cardMin": "0",
           "cardMax": "N",
@@ -1170,7 +1066,7 @@
       ],
       "properties": [
         {
-          "id": "el_126",
+          "id": "el_115",
           "name": "quantite",
           "type": "INT",
           "isIdentifier": false,
@@ -1181,21 +1077,21 @@
       ]
     },
     {
-      "id": "el_127",
+      "id": "el_116",
       "name": "classer",
       "x": 302,
       "y": 939,
       "pkMode": "composite",
       "links": [
         {
-          "id": "el_128",
+          "id": "el_117",
           "entityId": "el_54",
           "cardMin": "1",
           "cardMax": "1",
           "role": ""
         },
         {
-          "id": "el_129",
+          "id": "el_118",
           "entityId": "el_51",
           "cardMin": "1",
           "cardMax": "N",
@@ -1205,21 +1101,21 @@
       "properties": []
     },
     {
-      "id": "el_130",
+      "id": "el_119",
       "name": "provenir",
       "x": 320,
       "y": 1228,
       "pkMode": "composite",
       "links": [
         {
-          "id": "el_131",
+          "id": "el_120",
           "entityId": "el_54",
           "cardMin": "1",
           "cardMax": "N",
           "role": ""
         },
         {
-          "id": "el_132",
+          "id": "el_121",
           "entityId": "el_70",
           "cardMin": "1",
           "cardMax": "N",
@@ -1229,21 +1125,21 @@
       "properties": []
     },
     {
-      "id": "el_133",
+      "id": "el_122",
       "name": "decliner",
       "x": 830,
       "y": 1228,
       "pkMode": "composite",
       "links": [
         {
-          "id": "el_134",
+          "id": "el_123",
           "entityId": "el_54",
           "cardMin": "1",
           "cardMax": "N",
           "role": ""
         },
         {
-          "id": "el_135",
+          "id": "el_124",
           "entityId": "el_73",
           "cardMin": "1",
           "cardMax": "1",
@@ -1253,21 +1149,21 @@
       "properties": []
     },
     {
-      "id": "el_136",
+      "id": "el_125",
       "name": "colorer",
       "x": 1350,
       "y": 1228,
       "pkMode": "composite",
       "links": [
         {
-          "id": "el_137",
+          "id": "el_126",
           "entityId": "el_73",
           "cardMin": "0",
           "cardMax": "N",
           "role": ""
         },
         {
-          "id": "el_138",
+          "id": "el_127",
           "entityId": "el_48",
           "cardMin": "0",
           "cardMax": "N",
@@ -1277,21 +1173,21 @@
       "properties": []
     },
     {
-      "id": "el_139",
+      "id": "el_128",
       "name": "proposer",
       "x": 575,
       "y": 1518,
       "pkMode": "composite",
       "links": [
         {
-          "id": "el_140",
+          "id": "el_129",
           "entityId": "el_54",
           "cardMin": "0",
           "cardMax": "N",
           "role": ""
         },
         {
-          "id": "el_141",
+          "id": "el_130",
           "entityId": "el_79",
           "cardMin": "0",
           "cardMax": "N",
@@ -1301,21 +1197,21 @@
       "properties": []
     },
     {
-      "id": "el_142",
+      "id": "el_131",
       "name": "dater",
       "x": 322,
       "y": 1698,
       "pkMode": "composite",
       "links": [
         {
-          "id": "el_143",
+          "id": "el_132",
           "entityId": "el_79",
           "cardMin": "0",
           "cardMax": "N",
           "role": ""
         },
         {
-          "id": "el_144",
+          "id": "el_133",
           "entityId": "el_85",
           "cardMin": "1",
           "cardMax": "1",
@@ -1323,119 +1219,6 @@
         }
       ],
       "properties": []
-    },
-    {
-      "id": "el_145",
-      "name": "fleurir",
-      "x": 1609,
-      "y": 1458,
-      "pkMode": "composite",
-      "links": [
-        {
-          "id": "el_146",
-          "entityId": "el_91",
-          "cardMin": "1",
-          "cardMax": "1",
-          "role": ""
-        },
-        {
-          "id": "el_147",
-          "entityId": "el_48",
-          "cardMin": "0",
-          "cardMax": "N",
-          "role": ""
-        }
-      ],
-      "properties": []
-    },
-    {
-      "id": "el_148",
-      "name": "regrouper",
-      "x": 1868,
-      "y": 1698,
-      "pkMode": "composite",
-      "links": [
-        {
-          "id": "el_149",
-          "entityId": "el_91",
-          "cardMin": "1",
-          "cardMax": "1",
-          "role": ""
-        },
-        {
-          "id": "el_150",
-          "entityId": "el_95",
-          "cardMin": "1",
-          "cardMax": "N",
-          "role": ""
-        }
-      ],
-      "properties": []
-    },
-    {
-      "id": "el_151",
-      "name": "exprimer",
-      "x": 1609,
-      "y": 1868,
-      "pkMode": "composite",
-      "links": [
-        {
-          "id": "el_152",
-          "entityId": "el_98",
-          "cardMin": "1",
-          "cardMax": "1",
-          "role": ""
-        },
-        {
-          "id": "el_153",
-          "entityId": "el_91",
-          "cardMin": "0",
-          "cardMax": "N",
-          "role": ""
-        }
-      ],
-      "properties": []
-    },
-    {
-      "id": "el_154",
-      "name": "croiser",
-      "x": 1880,
-      "y": 1900,
-      "pkMode": "composite",
-      "links": [
-        {
-          "id": "el_155",
-          "entityId": "el_98",
-          "cardMin": "0",
-          "cardMax": "N",
-          "role": "parent 1"
-        },
-        {
-          "id": "el_156",
-          "entityId": "el_98",
-          "cardMin": "0",
-          "cardMax": "N",
-          "role": "parent 2"
-        },
-        {
-          "id": "el_157",
-          "entityId": "el_91",
-          "cardMin": "0",
-          "cardMax": "N",
-          "role": "enfant"
-        }
-      ],
-      "properties": [
-        {
-          "id": "el_158",
-          "name": "probabilite",
-          "type": "DECIMAL(9,8)",
-          "isIdentifier": false,
-          "nullable": false,
-          "unsigned": false,
-          "comment": "multiple exact de 1/64 (1/256 pour les roses)"
-        }
-      ]
     }
   ],
   "inheritances": []

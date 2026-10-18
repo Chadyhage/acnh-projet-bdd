@@ -271,36 +271,11 @@ function hemisphereTexte($h)
     return $h === 'SH' ? 'hémisphère Sud' : 'hémisphère Nord';
 }
 
-/**
- * Traduction des couleurs (affichage seulement : la base garde les noms du Google Sheet).
- * $feminin = true pour accorder avec « fleur » : une fleur blanche, une fleur noire.
- */
-function couleurFr($nom, $feminin = false)
-{
-    $fr = array('White' => 'blanc', 'Yellow' => 'jaune', 'Red' => 'rouge', 'Pink' => 'rose', 'Orange' => 'orange',
-                'Purple' => 'violet', 'Black' => 'noir', 'Blue' => 'bleu', 'Green' => 'vert', 'Gold' => 'doré',
-                'Aqua' => 'turquoise', 'Beige' => 'beige', 'Brown' => 'marron', 'Gray' => 'gris', 'Colorful' => 'multicolore');
-    $feminins = array('White' => 'blanche', 'Purple' => 'violette', 'Black' => 'noire', 'Blue' => 'bleue',
-                      'Green' => 'verte', 'Gold' => 'dorée', 'Gray' => 'grise');
-    if ($feminin && isset($feminins[$nom])) {
-        return $feminins[$nom];
-    }
-    return isset($fr[$nom]) ? $fr[$nom] : $nom;
-}
-
-/** Nom français des espèces de fleurs (affichage seulement). */
-function especeFleurFr($nom)
-{
-    $fr = array('Rose' => 'rose', 'Tulip' => 'tulipe', 'Pansy' => 'pensée', 'Cosmos' => 'cosmos', 'Lily' => 'lys',
-                'Hyacinth' => 'jacinthe', 'Windflower' => 'anémone', 'Mum' => 'chrysanthème');
-    return isset($fr[$nom]) ? $fr[$nom] : $nom;
-}
-
 /** Couleur d'affichage (pastille) d'un nom de couleur. */
 function couleurHex($nom)
 {
     $hex = array('White' => '#f4f4ef', 'Yellow' => '#f2c94c', 'Red' => '#d64541', 'Pink' => '#f2a1bd', 'Orange' => '#ef8d32',
-                 'Purple' => '#8e63c9', 'Black' => '#2f2f35', 'Blue' => '#4c7fd9', 'Green' => '#58a55c', 'Gold' => '#c9a227',
+                 'Purple' => '#8e63c9', 'Black' => '#2f2f35', 'Blue' => '#4c7fd9', 'Green' => '#58a55c',
                  'Aqua' => '#45c1c4', 'Beige' => '#e3cfa6', 'Brown' => '#8a5a3b', 'Gray' => '#9aa0a6',
                  'Colorful' => 'conic-gradient(#d64541, #f2c94c, #58a55c, #4c7fd9, #8e63c9, #d64541)');
     return isset($hex[$nom]) ? $hex[$nom] : '#cccccc';

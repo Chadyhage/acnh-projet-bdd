@@ -43,11 +43,6 @@ Table source {
   nom_source varchar(50) [not null, unique, note: 'Nook\'s Cranny, Crafting, C.J.…']
 }
 
-Table espece_fleur {
-  id_espece_fleur int [pk, increment, not null]
-  nom_espece_fleur varchar(20) [not null, unique]
-}
-
 Table creature {
   id_creature int [pk, increment, not null]
   id_lieu int [not null]
@@ -160,33 +155,6 @@ Table periode {
   Note: 'Contraintes CHECK : (hemisphere_periode IN (\'NH\', \'SH\')) ; (date_fin >= date_debut)'
 }
 
-Table fleur {
-  id_fleur int [pk, increment, not null]
-  id_espece_fleur int [not null]
-  id_couleur int [not null]
-  origine_fleur varchar(10) [not null, note: 'Graine (sac de graines) / Hybride']
-  prix_vente_fleur int [not null]
-
-  indexes {
-    (id_espece_fleur, id_couleur) [unique]
-  }
-
-  Note: 'Contraintes CHECK : (origine_fleur IN (\'Graine\', \'Hybride\'))'
-}
-
-Table genotype {
-  id_genotype int [pk, increment, not null]
-  id_fleur int [not null, note: 'couleur visible produite par ce génotype']
-  code_genotype varchar(4) [not null, note: 'gènes R, Y, W (+ S pour les roses), valeurs 0/1/2 ; ex. 2001']
-  est_graine boolean [not null, note: 'génotype des fleurs vendues en sac de graines']
-
-  indexes {
-    (id_fleur, code_genotype) [unique]
-  }
-
-  Note: 'Contraintes CHECK : (code_genotype REGEXP \'^[012]{3,4}$\')'
-}
-
 Table aimer {
   id_villageois int [not null]
   id_style int [not null]
@@ -244,19 +212,6 @@ Table proposer {
   }
 }
 
-Table croiser {
-  id_genotype_parent_1 int [not null]
-  id_genotype_parent_2 int [not null]
-  id_fleur_enfant int [not null]
-  probabilite decimal(9,8) [not null, note: 'valeur exacte : multiple de 1/64 (1/256 pour les roses)']
-
-  indexes {
-    (id_genotype_parent_1, id_genotype_parent_2, id_fleur_enfant) [pk]
-  }
-
-  Note: 'Contraintes CHECK : (probabilite > 0 AND probabilite <= 1)'
-}
-
 Ref: creature.id_lieu > lieu.id_lieu
 Ref: disponibilite.id_creature > creature.id_creature [delete: cascade]
 Ref: villageois.id_espece > espece.id_espece
@@ -265,9 +220,6 @@ Ref: villageois.id_loisir > loisir.id_loisir
 Ref: meuble.id_categorie > categorie.id_categorie
 Ref: variante.id_meuble > meuble.id_meuble [delete: cascade]
 Ref: periode.id_evenement > evenement.id_evenement [delete: cascade]
-Ref: fleur.id_espece_fleur > espece_fleur.id_espece_fleur
-Ref: fleur.id_couleur > couleur.id_couleur
-Ref: genotype.id_fleur > fleur.id_fleur
 Ref: aimer.id_villageois > villageois.id_villageois [delete: cascade]
 Ref: aimer.id_style > style.id_style
 Ref: preferer.id_villageois > villageois.id_villageois [delete: cascade]
@@ -280,9 +232,6 @@ Ref: provenir.id_meuble > meuble.id_meuble [delete: cascade]
 Ref: provenir.id_source > source.id_source
 Ref: proposer.id_meuble > meuble.id_meuble [delete: cascade]
 Ref: proposer.id_evenement > evenement.id_evenement
-Ref: croiser.id_genotype_parent_1 > genotype.id_genotype
-Ref: croiser.id_genotype_parent_2 > genotype.id_genotype
-Ref: croiser.id_fleur_enfant > fleur.id_fleur
 
 TableGroup "Créatures" {
   creature
@@ -309,12 +258,6 @@ TableGroup "Meubles" {
   colorer
   provenir
   proposer
-}
-TableGroup "Fleurs" {
-  espece_fleur
-  fleur
-  genotype
-  croiser
 }
 TableGroup "Partagé" {
   couleur

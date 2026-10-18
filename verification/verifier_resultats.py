@@ -1,6 +1,6 @@
 """Vérification fonctionnelle du site (python verification/verifier_resultats.py) : chaque résultat affiché est comparé à un calcul
-refait de façon indépendante à partir des CSV bruts du Google Sheet (et du moteur de
-génétique de référence pour les fleurs). Aucune requête SQL du site n'est réutilisée."""
+refait de façon indépendante à partir des CSV bruts du Google Sheet.
+Aucune requête SQL du site n'est réutilisée."""
 import csv, re, html, datetime, urllib.request, urllib.parse, collections
 import os, sys
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -14,8 +14,6 @@ def connexion():
     return pymysql.connect(host=os.environ.get('DB_HOST', '127.0.0.1'), port=int(os.environ.get('DB_PORT', '3306')),
                            user=os.environ.get('DB_USER', 'root'), password=os.environ.get('DB_PASS', ''),
                            database='acnh', charset='utf8mb4')
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import moteur_fleurs as engine                  # moteur de référence (fractions exactes)
 
 CSV = os.path.join(RACINE, 'data', 'csv') + os.sep
 db = connexion()
@@ -80,39 +78,7 @@ for hemi in ('NH', 'SH'):
         if attendu != obtenu: ko('créatures départ', f'{hemi} {mois} : {sorted(attendu ^ obtenu)[:4]}')
 print(f'1. Créatures : {n} pages comparées ({lignes_crea} lignes de résultats), erreurs = {sum(v for k, v in erreurs.items() if k.startswith("créatures"))}')
 
-# ------------------------------------------------------------------ 2. Fleurs
-cur.execute("SELECT id_espece_fleur, nom_espece_fleur FROM espece_fleur")
-especes = dict(cur.fetchall())
-cur.execute("SELECT id_couleur, nom_couleur FROM couleur")
-couleurs = dict(cur.fetchall())
-RE_LIGNE = re.compile(r'<tr>\s*<td><span class="pastille"><span class="rond"[^>]*></span>([^<]+)</span>.*?<td class="nombre">([\d ,]+) %</td>', re.S)
-n = nb_err = lignes_fl = n_messages = 0
-for id_esp, esp in especes.items():
-    cols = sorted({c for c in engine.A[esp].values()})
-    ids = {v: k for k, v in couleurs.items()}
-    for c1 in cols:
-        for c2 in cols:
-            for mode, mode_ref in (('equiprobable', 'equi'), ('graines', 'graine')):
-                p = page('fleurs.php?' + q({'espece': id_esp, 'couleur1': ids[c1], 'couleur2': ids[c2], 'mode': mode}))
-                n += 1
-                if mode == 'graines' and (c1 not in engine.GRAINES[esp] or c2 not in engine.GRAINES[esp]):
-                    n_messages += 1
-                    if 'class="note erreur"' not in p: ko('fleurs', f'{esp} {c1}x{c2} graines : message attendu')
-                    continue
-                ref = engine.outil(esp, c1, c2, mode_ref)
-                t = p.split('<table class="tableau probabilites">')[1].split('</table>')[0]
-                obtenu = {c: float(v.replace(',', '.').replace(' ', '')) for c, v in RE_LIGNE.findall(t)}
-                lignes_fl += len(obtenu)
-                if set(obtenu) != set(ref):
-                    ko('fleurs', f'{esp} {c1}x{c2} {mode} couleurs {sorted(obtenu)} au lieu de {sorted(ref)}'); continue
-                for c, pr in ref.items():
-                    if abs(obtenu[c] - float(pr) * 100) > 0.0051:
-                        ko('fleurs', f'{esp} {c1}x{c2} {mode} {c} : {obtenu[c]} au lieu de {float(pr)*100:.4f}')
-                if abs(sum(obtenu.values()) - 100) > 0.05: ko('fleurs', f'{esp} {c1}x{c2} {mode} somme {sum(obtenu.values())}')
-print(f'2. Fleurs : {n} combinaisons testées : {n - n_messages} résultats comparés au moteur de référence '
-      f'({lignes_fl} probabilités) et {n_messages} messages « couleur non vendue en graines », erreurs = {erreurs["fleurs"]}')
-
-# ------------------------------------------------------------------ 3. Villageois
+# ------------------------------------------------------------------ 2. Villageois
 vill = lire('villagers.csv')
 def total_villageois(params):
     m = re.search(r'(\d+) villageois (?:sur|dans la base)', page('villageois.php?' + q(params)))
@@ -139,9 +105,9 @@ cur.execute("SELECT id_style FROM style WHERE nom_style='Cute'"); cute = cur.fet
 tests += 1
 attendu = sum(1 for v in vill if v['Species'] == 'Cat' and 'Cute' in (v['Style 1'], v['Style 2']) and v['Gender'] == 'Female')
 if total_villageois({'espece': chat, 'style': cute, 'genre': 'Female'}) != attendu: ko('villageois', 'combinaison')
-print(f'3. Villageois : {tests} filtres comparés, erreurs = {erreurs["villageois"]}')
+print(f'2. Villageois : {tests} filtres comparés, erreurs = {erreurs["villageois"]}')
 
-# ------------------------------------------------------------------ 4. Meubles de saison
+# ------------------------------------------------------------------ 3. Meubles de saison
 meubles = []
 for f, cat in (('housewares.csv', 'Housewares'), ('miscellaneous.csv', 'Miscellaneous'),
                ('wall_mounted.csv', 'Wall-mounted'), ('ceiling_decor.csv', 'Ceiling Decor')):
@@ -205,9 +171,9 @@ for (du, au) in (('2026-12-01', '2026-12-31'), ('2027-03-25', '2027-04-30'), ('2
             if p and p[0] <= aa and p[1] >= dd: attendu |= par_evt[row['Name']]
     obtenu = {html.unescape(x) for x in RE_NOM.findall(page('meubles.php?' + q({'du': du, 'au': au})))}
     if obtenu != attendu: ko('saison date', f'{du}..{au} : {sorted(attendu ^ obtenu)[:4]}')
-print(f'4. Meubles de saison : {tests} recherches comparées ({lignes_saison} meubles affichés), erreurs = {erreurs["saison événement"] + erreurs["saison date"]}')
+print(f'3. Meubles de saison : {tests} recherches comparées ({lignes_saison} meubles affichés), erreurs = {erreurs["saison événement"] + erreurs["saison date"]}')
 
-# ------------------------------------------------------------------ 5. Catalogue des meubles
+# ------------------------------------------------------------------ 4. Catalogue des meubles
 def total_meubles(params):
     m = re.search(r'<p class="intro">([\d ]+) meubles? trouvé', page('meubles.php?' + q(dict(params, vue='catalogue'))))
     return int(m.group(1).replace(' ', ''))
@@ -229,7 +195,7 @@ for i, nom in cur.fetchall():
 tests += 2
 if total_meubles({'bricolable': 1}) != sum(1 for it in items.values() if it['diy']): ko('catalogue', 'DIY')
 if total_meubles({'saisonnier': 1}) != sum(1 for it in items.values() if it['saison']): ko('catalogue', 'saison')
-print(f'5. Catalogue : {tests} filtres comparés, erreurs = {erreurs["catalogue"]}')
+print(f'4. Catalogue : {tests} filtres comparés, erreurs = {erreurs["catalogue"]}')
 
 print('\nTOTAL erreurs :', sum(erreurs.values()))
 sys.exit(1 if sum(erreurs.values()) else 0)

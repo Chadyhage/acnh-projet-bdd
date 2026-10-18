@@ -8,7 +8,6 @@ $menu = array(
     'creatures'  => array('creatures.php', 'Poissons et insectes'),
     'meubles'    => array('meubles.php', 'Meubles'),
     'villageois' => array('villageois.php', 'Villageois'),
-    'fleurs'     => array('fleurs.php', 'Croisement de fleurs'),
 );
 ?><!doctype html>
 <html lang="fr">

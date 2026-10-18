@@ -1,9 +1,10 @@
 -- =====================================================================
 -- Projet transversal Animal Crossing : New Horizons — EPSI B1
--- Script de création de la base (MySQL 8 / MariaDB 10.5+, via phpMyAdmin)
--- Version finale — testée sur MySQL 8.0 (mode strict par défaut)
--- ENGINE=InnoDB est écrit sur chaque table : WampServer règle MySQL sur MyISAM
--- par défaut, et MyISAM ignore les clés étrangères.
+-- Script de création de la base « acnh » (MySQL 8, via phpMyAdmin ou migration/import.php)
+-- 21 tables : 15 tables issues des entités du MCD + 6 tables associatives.
+--
+-- ENGINE=InnoDB est écrit sur chaque table : WampServer crée les tables en
+-- MyISAM par défaut, et MyISAM ne vérifie pas les clés étrangères.
 --
 -- Ordre : tables de référence -> tables principales -> tables associatives
 -- Conventions : snake_case, sans accent ; id_<table> = clé primaire ;
@@ -73,13 +74,6 @@ CREATE TABLE source (
     nom_source  VARCHAR(50)  NOT NULL,             -- Nook's Cranny, Crafting, C.J.…
     PRIMARY KEY (id_source),
     UNIQUE (nom_source)
-) ENGINE=InnoDB;
-
-CREATE TABLE espece_fleur (
-    id_espece_fleur   INT          NOT NULL AUTO_INCREMENT,
-    nom_espece_fleur  VARCHAR(20)  NOT NULL,
-    PRIMARY KEY (id_espece_fleur),
-    UNIQUE (nom_espece_fleur)
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
@@ -226,35 +220,6 @@ CREATE TABLE periode (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
--- Fleurs : couleurs visibles (onglet Plants), génotypes cachés et
--- résultats de croisement (calculés à l'import, loi de Mendel)
--- ---------------------------------------------------------------------
-
-CREATE TABLE fleur (
-    id_fleur          INT          NOT NULL AUTO_INCREMENT,
-    id_espece_fleur   INT          NOT NULL,
-    id_couleur        INT          NOT NULL,
-    origine_fleur     VARCHAR(10)  NOT NULL,          -- Graine (sac de graines) / Hybride
-    prix_vente_fleur  INT          NOT NULL,
-    PRIMARY KEY (id_fleur),
-    UNIQUE (id_espece_fleur, id_couleur),
-    CHECK (origine_fleur IN ('Graine', 'Hybride')),
-    FOREIGN KEY (id_espece_fleur) REFERENCES espece_fleur (id_espece_fleur),
-    FOREIGN KEY (id_couleur)      REFERENCES couleur (id_couleur)
-) ENGINE=InnoDB;
-
-CREATE TABLE genotype (
-    id_genotype    INT         NOT NULL AUTO_INCREMENT,
-    id_fleur       INT         NOT NULL,             -- couleur visible produite par ce génotype
-    code_genotype  VARCHAR(4)  NOT NULL,             -- gènes R, Y, W (+ S pour les roses), valeurs 0/1/2 ; ex. 2001
-    est_graine     BOOLEAN     NOT NULL,             -- génotype des fleurs vendues en sac de graines
-    PRIMARY KEY (id_genotype),
-    UNIQUE (id_fleur, code_genotype),
-    CHECK (code_genotype REGEXP '^[012]{3,4}$'),
-    FOREIGN KEY (id_fleur) REFERENCES fleur (id_fleur)
-) ENGINE=InnoDB;
-
--- ---------------------------------------------------------------------
 -- Tables associatives (associations N:N du MCD)
 -- ---------------------------------------------------------------------
 
@@ -312,20 +277,4 @@ CREATE TABLE proposer (
     PRIMARY KEY (id_meuble, id_evenement),
     FOREIGN KEY (id_meuble)    REFERENCES meuble (id_meuble) ON DELETE CASCADE,
     FOREIGN KEY (id_evenement) REFERENCES evenement (id_evenement)
-) ENGINE=InnoDB;
-
--- CROISER : probabilité qu'un couple de génotypes (parent 1, parent 2) donne un
--- enfant de telle couleur. L'enfant est une fleur (couleur visible) car le site
--- affiche des couleurs ; les probabilités des génotypes enfants de même couleur
--- sont additionnées à l'import.
-CREATE TABLE croiser (
-    id_genotype_parent_1  INT           NOT NULL,
-    id_genotype_parent_2  INT           NOT NULL,
-    id_fleur_enfant       INT           NOT NULL,
-    probabilite           DECIMAL(9,8)  NOT NULL,     -- valeur exacte : multiple de 1/64 (1/256 pour les roses)
-    PRIMARY KEY (id_genotype_parent_1, id_genotype_parent_2, id_fleur_enfant),
-    CHECK (probabilite > 0 AND probabilite <= 1),
-    FOREIGN KEY (id_genotype_parent_1) REFERENCES genotype (id_genotype),
-    FOREIGN KEY (id_genotype_parent_2) REFERENCES genotype (id_genotype),
-    FOREIGN KEY (id_fleur_enfant)      REFERENCES fleur (id_fleur)
 ) ENGINE=InnoDB;

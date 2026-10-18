@@ -121,19 +121,6 @@ cas += [('villageois.php?tri=espece',200), ('villageois.php?'+q({'q':'bo'}),200)
 for i in col("SELECT id_villageois FROM villageois"):
     cas.append((f'villageois_fiche.php?id={i}',200))
 cas += [('villageois_fiche.php?id=0',404), ('villageois_fiche.php?id=5000',404)]
-# Fleurs : toutes les espèces, toutes les paires de couleurs, deux modes
-cur.execute("""SELECT f.id_espece_fleur, c.id_couleur FROM fleur f JOIN couleur c ON c.id_couleur=f.id_couleur
-               WHERE EXISTS (SELECT 1 FROM genotype g WHERE g.id_fleur=f.id_fleur)""")
-parEspece = {}
-for e, c in cur.fetchall(): parEspece.setdefault(e, []).append(c)
-for e, cs in parEspece.items():
-    cas.append((f'fleurs.php?espece={e}',200))
-    for c1 in cs:
-        for c2 in cs:
-            for mode in ('equiprobable','graines'):
-                cas.append(('fleurs.php?'+q({'espece':e,'couleur1':c1,'couleur2':c2,'mode':mode}),200))
-cas += [('fleurs.php',200), ('fleurs.php?espece=999',200), ('fleurs.php?espece=1&couleur1=999&couleur2=1',200),
-        ('fleurs.php?mode=x&couleur1[]=1',200)]
 
 print(len(cas), 'requêtes', flush=True)
 echecs = 0

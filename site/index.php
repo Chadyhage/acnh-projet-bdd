@@ -87,9 +87,7 @@ $taille = requete($dbh,
             (SELECT COUNT(*) FROM meuble)     AS meubles,
             (SELECT COUNT(*) FROM variante)   AS variantes,
             (SELECT COUNT(*) FROM evenement)  AS evenements,
-            (SELECT COUNT(*) FROM periode)    AS periodes,
-            (SELECT COUNT(*) FROM genotype)   AS genotypes,
-            (SELECT COUNT(*) FROM croiser)    AS croisements")->fetch();
+            (SELECT COUNT(*) FROM periode)    AS periodes")->fetch();
 
 $lienCreatures = array('hemisphere' => $hemisphere === 'NH' ? '' : $hemisphere);
 $titre = 'Accueil';
@@ -203,21 +201,13 @@ require 'includes/header.php';
             <?php endif; ?>
             <p><a href="<?= e(url('villageois.php', array('mois' => $mois, 'tri' => 'anniversaire'))) ?>">Les <?= count($anniversaires) ?> anniversaires <?= deMois($mois) ?></a></p>
         </section>
-
-        <section aria-labelledby="t-fleurs">
-            <h2 id="t-fleurs">Croisement de fleurs</h2>
-            <p>Deux fleurs plantées côte à côte peuvent donner une nouvelle fleur. Choisissez l'espèce et les deux couleurs :
-            l'outil calcule la chance d'obtenir chaque couleur, à partir des <?= nombre($taille['genotypes']) ?> génotypes de la base.</p>
-            <p><a href="fleurs.php">Ouvrir l'outil de croisement</a></p>
-        </section>
     </div>
 </div>
 
 <p class="contenu-base">
     La base contient <?= nombre($taille['villageois']) ?> villageois, <?= nombre($taille['creatures']) ?> poissons et insectes,
-    <?= nombre($taille['meubles']) ?> meubles déclinés en <?= nombre($taille['variantes']) ?> variantes,
-    <?= nombre($taille['evenements']) ?> saisons et événements (<?= nombre($taille['periodes']) ?> périodes datées)
-    et <?= nombre($taille['croisements']) ?> résultats de croisement de fleurs.
+    <?= nombre($taille['meubles']) ?> meubles déclinés en <?= nombre($taille['variantes']) ?> variantes
+    et <?= nombre($taille['evenements']) ?> saisons et événements (<?= nombre($taille['periodes']) ?> périodes datées).
 </p>
 
 <?php require 'includes/footer.php'; ?>

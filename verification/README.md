@@ -6,33 +6,27 @@ résultats ? ». Ils ne font pas partie du site : ils l'interrogent comme un vis
 
 | Script | Ce qu'il vérifie |
 |---|---|
-| `tester_pages.py` | Ouvre 4 423 adresses (toutes les fiches, toutes les heures et tous les mois, tous les filtres, des paramètres invalides ou piégés) : pas d'erreur PHP ni SQL, bon code HTTP (404 pour une fiche inexistante), HTML bien fermé. |
+| `tester_pages.py` | Ouvre 3 727 adresses (toutes les fiches, toutes les heures et tous les mois, tous les filtres, des paramètres invalides ou piégés) : pas d'erreur PHP ni SQL, bon code HTTP (404 pour une fiche inexistante), HTML bien fermé. |
 | `verifier_resultats.py` | Recalcule les résultats **directement à partir des CSV du Google Sheet**, sans réutiliser les requêtes du site, et les compare aux pages. |
-| `moteur_fleurs.py` | Calcul de référence des croisements (loi de Mendel, fractions exactes), utilisé par le script précédent. |
 
-## Résultats (12/10/2026)
+## Résultats (18/10/2026)
 
 ```
 tester_pages.py
-4423 requêtes
-échecs : 0 / 4423
+3727 requêtes
+échecs : 0 / 3727
 
 verifier_resultats.py
 1. Créatures : 608 pages comparées (33860 lignes de résultats), erreurs = 0
-2. Fleurs : 684 combinaisons testées : 414 résultats comparés au moteur de référence (1793 probabilités) et 270 messages « couleur non vendue en graines », erreurs = 0
-3. Villageois : 84 filtres comparés, erreurs = 0
-4. Meubles de saison : 192 recherches comparées (2412 meubles affichés), erreurs = 0
-5. Catalogue : 21 filtres comparés, erreurs = 0
+2. Villageois : 84 filtres comparés, erreurs = 0
+3. Meubles de saison : 192 recherches comparées (2412 meubles affichés), erreurs = 0
+4. Catalogue : 21 filtres comparés, erreurs = 0
 TOTAL erreurs : 0
 ```
 
-- **Créatures** : pour les 2 hémisphères x 12 mois x 24 heures, la liste affichée est
+- **Créatures** : pour les 2 hémisphères × 12 mois × 24 heures, la liste affichée est
   identique à celle qu'on obtient en lisant les horaires du Google Sheet
   (« 4 PM – 9 AM », « All day »…), ainsi que les filtres météo et « dernier mois ».
-- **Fleurs** : toutes les paires de couleurs des 8 espèces, en mode « génotypes
-  inconnus » et « graines » ; écart maximal toléré 0,005 % (arrondi d'affichage).
-  En mode « graines », une paire dont une couleur ne se vend pas en graines doit
-  afficher un message à la place des probabilités (270 cas).
 - **Meubles de saison** : chaque saison/événement, 48 dates de 2026 dans chaque
   hémisphère et 3 périodes de plusieurs jours, recalculées à partir des dates de
   l'onglet *Seasons and Events*.
