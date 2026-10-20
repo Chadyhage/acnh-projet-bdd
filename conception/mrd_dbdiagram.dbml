@@ -1,62 +1,27 @@
-// MRD (modèle relationnel) — Projet Animal Crossing : New Horizons, EPSI B1
+// MRD (modèle relationnel) — Projet Animal Crossing : New Horizons, EPSI B1 — base acnh_site
 // À coller sur https://dbdiagram.io/d pour afficher le schéma (types, NULL, clés).
-// Généré à partir de sql/01_schema.sql (MySQL, tables InnoDB). Les CHECK sont rappelés dans les notes.
-
-Table couleur {
-  id_couleur int [pk, increment, not null]
-  nom_couleur varchar(20) [not null, unique]
-}
+// Même structure que sql/01_creation_tables.sql (MySQL, tables InnoDB). Les CHECK sont rappelés dans les notes.
 
 Table lieu {
   id_lieu int [pk, increment, not null]
   nom_lieu varchar(120) [not null, unique, note: 'texte du Google Sheet (Where/How)']
-  zone_lieu varchar(20) [not null, note: 'regroupement pour les filtres : Mer, Rivière, Étang…']
-}
-
-Table espece {
-  id_espece int [pk, increment, not null]
-  nom_espece varchar(30) [not null, unique]
-}
-
-Table personnalite {
-  id_personnalite int [pk, increment, not null]
-  nom_personnalite varchar(20) [not null, unique]
-}
-
-Table loisir {
-  id_loisir int [pk, increment, not null]
-  nom_loisir varchar(20) [not null, unique]
-}
-
-Table style {
-  id_style int [pk, increment, not null]
-  nom_style varchar(20) [not null, unique]
-}
-
-Table categorie {
-  id_categorie int [pk, increment, not null]
-  nom_categorie varchar(30) [not null, unique, note: '= nom de l\'onglet (Housewares, Miscellaneous…)']
-}
-
-Table source {
-  id_source int [pk, increment, not null]
-  nom_source varchar(50) [not null, unique, note: 'Nook\'s Cranny, Crafting, C.J.…']
+  zone_lieu varchar(20) [not null, note: 'regroupement : Mer, Rivière, Étang…']
 }
 
 Table creature {
   id_creature int [pk, increment, not null]
   id_lieu int [not null]
   type_creature varchar(10) [not null, note: 'poisson / insecte']
-  numero_encyclopedie int [not null, note: 'colonne # (ordre de l\'encyclopédie)']
+  numero_encyclopedie int [not null, note: 'colonne # du Google Sheet']
   nom_creature varchar(50) [not null]
-  prix_vente_creature int [not null, note: 'en clochettes (entier)']
+  prix_vente_creature int [not null, note: 'en clochettes']
   ombre varchar(20) [null, note: 'poissons uniquement']
   difficulte varchar(20) [null, note: 'poissons uniquement']
   meteo varchar(20) [not null, note: 'Any weather / Any except rain / Rain only']
-  captures_requises int [not null, note: 'captures totales avant apparition']
+  captures_requises int [not null]
   description text [not null]
   phrase_capture text [not null]
-  nom_fichier_creature varchar(40) [not null, note: 'image = CDN + /MenuIcon/ + fichier + .png']
+  nom_fichier_creature varchar(40) [not null]
 
   indexes {
     (type_creature, nom_creature) [unique]
@@ -72,21 +37,76 @@ Table disponibilite {
   hemisphere char(2) [not null, note: 'NH (nord) / SH (sud)']
   mois int [not null]
   heure_debut int [not null, note: 'incluse']
-  heure_fin int [not null, note: 'exclue']
+  heure_fin int [not null, note: 'exclue ; plus petite que heure_debut si la plage passe minuit']
 
   indexes {
     (id_creature, hemisphere, mois, heure_debut) [unique]
     (hemisphere, mois) [name: 'idx_dispo_moment', note: 'recherche « disponible à l\'instant T »']
   }
 
-  Note: 'Contraintes CHECK : (hemisphere IN (\'NH\', \'SH\')) ; (mois BETWEEN 1 AND 12) ; (heure_debut BETWEEN 0 AND 23) ; (heure_fin BETWEEN 1 AND 24)'
+  Note: 'Contraintes CHECK : (hemisphere IN (\'NH\', \'SH\')) ; (mois BETWEEN 1 AND 12) ; (heure_debut BETWEEN 0 AND 23 AND heure_fin BETWEEN 0 AND 24)'
+}
+
+Table categorie {
+  id_categorie int [pk, increment, not null]
+  nom_categorie varchar(30) [not null, unique, note: 'nom de l\'onglet (Housewares, Miscellaneous…)']
+}
+
+Table meuble {
+  id_meuble int [pk, increment, not null]
+  id_categorie int [not null]
+  nom_meuble varchar(100) [not null]
+  prix_achat int [null, note: 'NULL = pas en vente (NFS)']
+  prix_vente_meuble int [not null]
+  bricolable boolean [not null, note: 'colonne DIY']
+  personnalisable boolean [not null, note: 'colonne Body Customize']
+  taille varchar(10) [not null, note: 'ex. 2x1 (en cases)']
+  exterieur boolean [not null, note: 'colonne Outdoor']
+  etiquette varchar(40) [not null, note: 'colonne Tag']
+  serie varchar(40) [null, note: 'colonne HHA Series (NULL = aucune)']
+  catalogue varchar(20) [not null, note: 'For sale / Not for sale / Not in catalog / Seasonal']
+  points_hha int [not null]
+  version_ajout_meuble varchar(10) [not null]
+  id_interne int [not null, unique, note: 'Internal ID du jeu']
+
+  indexes {
+    (catalogue) [name: 'idx_catalogue']
+  }
+
+  Note: 'Contraintes CHECK : (catalogue IN (\'For sale\', \'Not for sale\', \'Not in catalog\', \'Seasonal\'))'
+}
+
+Table saison {
+  id_saison int [pk, increment, not null]
+  nom_saison varchar(80) [not null, unique, note: 'Halloween, Toy Day, Summer (shopping)…']
+  type_saison varchar(30) [not null, note: 'Special event, Calendar season…']
+}
+
+Table proposer {
+  id_meuble int [not null]
+  id_saison int [not null]
+
+  indexes {
+    (id_meuble, id_saison) [pk]
+  }
+
+  Note: 'Table associative : un meuble peut être proposé pendant plusieurs saisons, une saison propose plusieurs meubles.'
+}
+
+Table espece {
+  id_espece int [pk, increment, not null]
+  nom_espece varchar(30) [not null, unique]
+}
+
+Table personnalite {
+  id_personnalite int [pk, increment, not null]
+  nom_personnalite varchar(20) [not null, unique]
 }
 
 Table villageois {
   id_villageois int [pk, increment, not null]
   id_espece int [not null]
   id_personnalite int [not null]
-  id_loisir int [not null]
   nom_villageois varchar(30) [not null, unique]
   genre varchar(10) [not null, note: 'Male / Female']
   sous_type char(1) [not null, note: 'A / B']
@@ -96,169 +116,34 @@ Table villageois {
   chanson_preferee varchar(50) [not null]
   citation_preferee text [not null]
   version_ajout_villageois varchar(10) [not null]
-  nom_fichier_villageois varchar(20) [not null, note: 'image = CDN + /NpcIcon/ + fichier + .png']
+  nom_fichier_villageois varchar(20) [not null]
 
-  Note: 'Contraintes CHECK : (genre IN (\'Male\', \'Female\')) ; (sous_type IN (\'A\', \'B\')) ; (jour_anniversaire BETWEEN 1 AND 31) ; (mois_anniversaire BETWEEN 1 AND 12)'
-}
-
-Table meuble {
-  id_meuble int [pk, increment, not null]
-  id_categorie int [not null]
-  nom_meuble varchar(100) [not null]
-  prix_achat int [null, note: 'NULL = NFS (pas en vente)']
-  prix_vente_meuble int [not null]
-  bricolable boolean [not null, note: 'colonne DIY']
-  personnalisable boolean [not null, note: 'colonne Body Customize']
-  taille varchar(10) [not null, note: 'ex. 2x1 (en cases)']
-  exterieur boolean [not null, note: 'colonne Outdoor']
-  etiquette varchar(40) [not null, note: 'colonne Tag (Table, Chair…)']
-  serie varchar(40) [null, note: 'colonne HHA Series (NULL = aucune)']
-  catalogue varchar(20) [not null, note: 'For sale / Not for sale / Seasonal / Not in catalog']
-  exclusif_evenement boolean [null, note: 'NULL = meuble sans saison/événement']
-  points_hha int [not null]
-  version_ajout_meuble varchar(10) [not null]
-  id_interne int [not null, unique, note: 'Internal ID du jeu (sert à relier les villageois)']
-
-  Note: 'Contraintes CHECK : (prix_achat IS NULL OR prix_achat >= 0) ; (prix_vente_meuble >= 0)'
-}
-
-Table variante {
-  id_variante int [pk, increment, not null]
-  id_meuble int [not null]
-  nom_variation varchar(60) [null, note: 'NULL = pas de variation']
-  nom_motif varchar(60) [null, note: 'NULL = pas de motif']
-  nom_fichier_variante varchar(80) [not null, note: 'image = CDN + /FtrIcon/ + fichier + .png']
-  id_unique varchar(20) [not null, unique, note: 'Unique Entry ID du Google Sheet']
-}
-
-Table evenement {
-  id_evenement int [pk, increment, not null]
-  nom_evenement varchar(80) [not null, unique, note: 'clé de liaison avec la colonne Season/Event des meubles']
-  type_evenement varchar(30) [not null, note: 'Calendar season, Special event…']
-  nom_affiche varchar(80) [not null]
-  date_variable boolean [not null, note: 'la date change selon l\'année']
-}
-
-Table periode {
-  id_periode int [pk, increment, not null]
-  id_evenement int [not null]
-  annee int [not null]
-  hemisphere_periode char(2) [not null]
-  date_debut date [not null]
-  date_fin date [not null]
-
-  indexes {
-    (id_evenement, annee, hemisphere_periode) [unique]
-    (hemisphere_periode, date_debut, date_fin) [name: 'idx_periode_dates', note: 'recherche par date']
-  }
-
-  Note: 'Contraintes CHECK : (hemisphere_periode IN (\'NH\', \'SH\')) ; (date_fin >= date_debut)'
-}
-
-Table aimer {
-  id_villageois int [not null]
-  id_style int [not null]
-
-  indexes {
-    (id_villageois, id_style) [pk]
-  }
-}
-
-Table preferer {
-  id_villageois int [not null]
-  id_couleur int [not null]
-
-  indexes {
-    (id_villageois, id_couleur) [pk]
-  }
-}
-
-Table meubler {
-  id_villageois int [not null]
-  id_meuble int [not null]
-  quantite int [not null, default: 1]
-
-  indexes {
-    (id_villageois, id_meuble) [pk]
-  }
-
-  Note: 'Contraintes CHECK : (quantite >= 1)'
-}
-
-Table colorer {
-  id_variante int [not null]
-  id_couleur int [not null]
-
-  indexes {
-    (id_variante, id_couleur) [pk]
-  }
-}
-
-Table provenir {
-  id_meuble int [not null]
-  id_source int [not null]
-
-  indexes {
-    (id_meuble, id_source) [pk]
-  }
-}
-
-Table proposer {
-  id_meuble int [not null]
-  id_evenement int [not null]
-
-  indexes {
-    (id_meuble, id_evenement) [pk]
-  }
+  Note: 'Contraintes CHECK : (genre IN (\'Male\', \'Female\')) ; (jour_anniversaire BETWEEN 1 AND 31 AND mois_anniversaire BETWEEN 1 AND 12)'
 }
 
 Ref: creature.id_lieu > lieu.id_lieu
 Ref: disponibilite.id_creature > creature.id_creature [delete: cascade]
+Ref: meuble.id_categorie > categorie.id_categorie
+Ref: proposer.id_meuble > meuble.id_meuble [delete: cascade]
+Ref: proposer.id_saison > saison.id_saison [delete: cascade]
 Ref: villageois.id_espece > espece.id_espece
 Ref: villageois.id_personnalite > personnalite.id_personnalite
-Ref: villageois.id_loisir > loisir.id_loisir
-Ref: meuble.id_categorie > categorie.id_categorie
-Ref: variante.id_meuble > meuble.id_meuble [delete: cascade]
-Ref: periode.id_evenement > evenement.id_evenement [delete: cascade]
-Ref: aimer.id_villageois > villageois.id_villageois [delete: cascade]
-Ref: aimer.id_style > style.id_style
-Ref: preferer.id_villageois > villageois.id_villageois [delete: cascade]
-Ref: preferer.id_couleur > couleur.id_couleur
-Ref: meubler.id_villageois > villageois.id_villageois [delete: cascade]
-Ref: meubler.id_meuble > meuble.id_meuble [delete: cascade]
-Ref: colorer.id_variante > variante.id_variante [delete: cascade]
-Ref: colorer.id_couleur > couleur.id_couleur
-Ref: provenir.id_meuble > meuble.id_meuble [delete: cascade]
-Ref: provenir.id_source > source.id_source
-Ref: proposer.id_meuble > meuble.id_meuble [delete: cascade]
-Ref: proposer.id_evenement > evenement.id_evenement
 
 TableGroup "Créatures" {
-  creature
   lieu
+  creature
   disponibilite
 }
-TableGroup "Villageois" {
-  villageois
-  espece
-  personnalite
-  loisir
-  style
-  aimer
-  preferer
-  meubler
-}
+
 TableGroup "Meubles" {
-  meuble
   categorie
-  variante
-  source
-  evenement
-  periode
-  colorer
-  provenir
+  meuble
   proposer
+  saison
 }
-TableGroup "Partagé" {
-  couleur
+
+TableGroup "Villageois" {
+  espece
+  villageois
+  personnalite
 }

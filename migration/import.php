@@ -1,21 +1,21 @@
 <?php
 /**
- * Migration : Google Sheet (fichiers CSV) -> base MySQL « acnh »
+ * Migration : Google Sheet (fichiers CSV) -> base MySQL « acnh_site »
  * =====================================================================
  * La migration se fait en 3 étapes :
  *
- *   1. Structure    sql/01_schema.sql     recrée la base vide (21 tables).
- *   2. Chargement   ce script             copie chaque fichier CSV, tel quel, dans une table temporaire :
- *                                         data/csv/fish.csv -> tmp_fish, data/csv/villagers.csv -> tmp_villagers…
- *                                         (une colonne par colonne du fichier, tout en texte,
- *                                         + num_ligne = numéro de la ligne dans le fichier).
- *   3. Migration    sql/02_migration.sql  remplit les tables finales avec INSERT INTO … SELECT … FROM tmp_… :
- *                                         on ne garde que les colonnes utiles, on convertit les valeurs
- *                                         (« NA » -> NULL, « Yes » -> 1, « 4 PM » -> 16…),
- *                                         puis on supprime les tables temporaires.
+ *   1. Structure    sql/01_creation_tables.sql   recrée la base vide (10 tables).
+ *   2. Chargement   ce script                    copie chaque fichier CSV, tel quel, dans une table temporaire :
+ *                                                data/csv/fish.csv -> tmp_fish, data/csv/villagers.csv -> tmp_villagers…
+ *                                                (une colonne par colonne du fichier, tout en texte,
+ *                                                + num_ligne = numéro de la ligne dans le fichier).
+ *   3. Migration    sql/02_migration.sql         remplit les tables finales avec INSERT INTO … SELECT … FROM tmp_… :
+ *                                                on ne garde que les colonnes utiles, on convertit les valeurs
+ *                                                (« NA » -> NULL, « Yes » -> 1, « 4 PM » -> 16…),
+ *                                                puis on supprime les tables temporaires.
  *
  * Lancement (WampServer démarré) :
- *   - navigateur : http://localhost/acnh/migration/import.php   (projet copié dans C:\wamp64\www\acnh)
+ *   - navigateur : http://localhost/acnh_site/migration/import.php   (projet dans C:\wamp64\www\acnh_site)
  *   - ou en ligne de commande : php migration/import.php
  * Option : import.php?garder=1 (ou php migration/import.php --garder) laisse les tables
  *          temporaires dans la base, pour les regarder dans phpMyAdmin.
@@ -98,12 +98,12 @@ function chargerCsv(PDO $dbh, $fichier, $table)
 $debutChrono = microtime(true);
 try {
     // =================================================================
-    // 1. Structure : la base est recréée à partir de sql/01_schema.sql
+    // 1. Structure : la base est recréée à partir de sql/01_creation_tables.sql
     // =================================================================
-    foreach (requetesDuFichier('sql/01_schema.sql') as $requete) {
+    foreach (requetesDuFichier('sql/01_creation_tables.sql') as $requete) {
         $dbh->exec($requete);
     }
-    echo "1. Base « acnh » recréée (sql/01_schema.sql)\n\n";
+    echo "1. Base « acnh_site » recréée (sql/01_creation_tables.sql)\n\n";
 
     // =================================================================
     // 2. Chargement : chaque CSV -> une table temporaire tmp_<nom du fichier>
@@ -145,7 +145,7 @@ try {
 // =====================================================================
 echo "\nImport terminé en " . round(microtime(true) - $debutChrono, 1) . " s\n\n";
 $tables = $dbh->query("SELECT table_name AS t FROM information_schema.tables
-                       WHERE table_schema = 'acnh' AND table_name NOT LIKE 'tmp\\_%'
+                       WHERE table_schema = 'acnh_site' AND table_name NOT LIKE 'tmp\\_%'
                        ORDER BY table_name")->fetchAll(PDO::FETCH_COLUMN);
 $total = 0;
 foreach ($tables as $t) {
@@ -156,6 +156,6 @@ foreach ($tables as $t) {
 printf("  %-16s %6d lignes (%d tables)\n", 'TOTAL', $total, count($tables));
 if ($garderTmp) {
     $nbTmp = $dbh->query("SELECT COUNT(*) FROM information_schema.tables
-                          WHERE table_schema = 'acnh' AND table_name LIKE 'tmp\\_%'")->fetchColumn();
+                          WHERE table_schema = 'acnh_site' AND table_name LIKE 'tmp\\_%'")->fetchColumn();
     echo "\n  + $nbTmp tables temporaires tmp_… conservées : relancer import.php sans l'option pour les supprimer.\n";
 }
