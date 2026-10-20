@@ -76,7 +76,7 @@ ORDER BY fichier, num_ligne;
 UPDATE tmp_creatures SET `Where/How` = 'Sea', Weather = 'Rain only' WHERE `Where/How` = 'Sea (rainy days)';
 
 -- 1.c lieu : chaque lieu une seule fois, numéroté dans l'ordre d'apparition (MIN(ordre)),
---     avec une zone qui regroupe les lieux proches (sert aux filtres du site).
+--     avec une zone qui regroupe les lieux proches (gardée, non affichée).
 INSERT INTO lieu (nom_lieu, zone_lieu)
 SELECT `Where/How`,
        CASE

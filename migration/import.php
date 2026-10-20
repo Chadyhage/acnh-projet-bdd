@@ -11,7 +11,7 @@
  *                                                + num_ligne = numéro de la ligne dans le fichier).
  *   3. Migration    sql/02_migration.sql         remplit les tables finales avec INSERT INTO … SELECT … FROM tmp_… :
  *                                                on ne garde que les colonnes utiles, on convertit les valeurs
- *                                                (« NA » -> NULL, « Yes » -> 1, « 4 PM » -> 16…),
+ *                                                (« NFS » -> NULL, « Yes » -> 1, « 4 PM » -> 16…),
  *                                                puis on supprime les tables temporaires.
  *
  * Lancement (WampServer démarré) :

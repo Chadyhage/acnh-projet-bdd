@@ -2,15 +2,16 @@
 --  Base « acnh_site » complète : structure (10 tables) + données (5 139 lignes)
 --  Projet transversal SQL — Animal Crossing : New Horizons (EPSI B1)
 --
---  À importer dans phpMyAdmin (onglet Importer) : la base acnh_site est créée
---  ou remplacée. Même contenu que la migration (migration/import.php).
+--  À importer dans phpMyAdmin (onglet Importer) : la base acnh_site est
+--  supprimée si elle existe, puis recréée. Même contenu que la migration.
 --    - créatures  : lieu, creature, disponibilite
 --    - meubles    : categorie, meuble, saison, proposer (table associative)
 --    - villageois : espece, personnalite, villageois
 -- =====================================================================
 
 SET NAMES utf8mb4;
-CREATE DATABASE IF NOT EXISTS acnh_site
+DROP DATABASE IF EXISTS acnh_site;
+CREATE DATABASE acnh_site
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE acnh_site;
 
