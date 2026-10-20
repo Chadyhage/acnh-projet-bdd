@@ -1,56 +1,87 @@
 <?php
-require_once __DIR__ . '/includes/db.php';
+require_once 'config.php';
+require_once 'includes/fonctions.php';
 
-$page_title = 'Poissons & insectes';
-$active     = 'creatures';
+$titre_page = 'Poissons & insectes';
+$page_active = 'creatures';
 
-// --- 1. Paramètres GET : tous obligatoires dans l'URL ----------------------
-require_url_params(['type' => 'tous', 'hemisphere' => 'NH', 'mois' => (int) date('n'), 'heure' => (int) date('G')]);
-$type       = get_choice('type', ['tous', 'poisson', 'insecte'], 'tous');
-$hemisphere = get_choice('hemisphere', ['NH', 'SH'], 'NH');
-$mois       = get_int('mois', 1, 12, (int) date('n'));
-$heure      = get_int('heure', 0, 23, (int) date('G'));
 
-// --- 2. Construction de la requête ------------------------------------------
-// Une plage horaire peut passer minuit (ex. 16 -> 9) : d'où les deux cas.
-$where  = [
-    'd.hemisphere = :hemisphere',
-    'd.mois = :mois',
-    "(\n        (d.heure_debut < d.heure_fin\n           AND :heure1 >= d.heure_debut AND :heure2 < d.heure_fin)\n     OR (d.heure_debut > d.heure_fin\n           AND (:heure3 >= d.heure_debut OR :heure4 < d.heure_fin))\n      )",
-];
-$params = [
-    'hemisphere' => $hemisphere,
-    'mois'       => $mois,
-    'heure1'     => $heure, 'heure2' => $heure, 'heure3' => $heure, 'heure4' => $heure,
-];
-if ($type !== 'tous') {
-    array_unshift($where, 'c.type_creature = :type');
-    $params = ['type' => $type] + $params;
+// ---------- 1. Lecture des paramètres de l'URL ($_GET) ----------
+// Si un paramètre manque ou n'est pas autorisé, on prend la valeur par défaut.
+
+if (isset($_GET['type'])) {
+    $type = $_GET['type'];
+} else {
+    $type = 'tous';
+}
+if (!in_array($type, ['tous', 'poisson', 'insecte'])) {
+    $type = 'tous';
 }
 
-$sql = "SELECT c.id_creature, c.nom_creature, c.type_creature,
-       l.nom_lieu, c.ombre, c.meteo, c.prix_vente_creature
-FROM creature c
-JOIN lieu l          ON l.id_lieu = c.id_lieu
-JOIN disponibilite d ON d.id_creature = c.id_creature
-WHERE " . implode("\n  AND ", $where) . "
-GROUP BY c.id_creature, c.nom_creature, c.type_creature,
-         l.nom_lieu, c.ombre, c.meteo, c.prix_vente_creature
-ORDER BY c.prix_vente_creature DESC, c.nom_creature";
-
-// --- 3. Exécution -----------------------------------------------------------
-try {
-    $rows  = run_query('Créatures disponibles à cet instant', $sql, $params);
-    $error = null;
-} catch (PDOException $ex) {
-    $rows  = [];
-    $error = $ex->getMessage();
+if (isset($_GET['hemisphere'])) {
+    $hemisphere = $_GET['hemisphere'];
+} else {
+    $hemisphere = 'NH';
+}
+if (!in_array($hemisphere, ['NH', 'SH'])) {
+    $hemisphere = 'NH';
 }
 
-$noms_mois = [1 => 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet',
-              'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+if (isset($_GET['mois'])) {
+    $mois = intval($_GET['mois']);    // le texte de l'URL devient un nombre
+} else {
+    $mois = date('n');                  // mois actuel
+}
+if (!in_array($mois, range(1, 12))) {      // range(1, 12) = [1, 2, …, 12]
+    $mois = date('n');
+}
 
-require __DIR__ . '/includes/header.php';
+if (isset($_GET['heure'])) {
+    $heure = intval($_GET['heure']);  // le texte de l'URL devient un nombre
+} else {
+    $heure = date('G');                 // heure actuelle
+}
+if (!in_array($heure, range(0, 23))) {     // range(0, 23) = [0, 1, …, 23]
+    $heure = date('G');
+}
+
+
+// ---------- 2. Requête SQL : créatures disponibles à cet instant ----------
+// Chaque « ? » reçoit une valeur du tableau $valeurs, dans l'ordre.
+$sql = "SELECT nom_creature, type_creature, nom_lieu, ombre, meteo, prix_vente_creature
+FROM creature
+JOIN lieu ON creature.id_lieu = lieu.id_lieu
+JOIN disponibilite ON creature.id_creature = disponibilite.id_creature
+WHERE hemisphere = ?
+  AND mois = ?
+  AND heure_debut <= ?
+  AND heure_fin > ?";
+$valeurs = [$hemisphere, $mois, $heure, $heure];
+
+// Le type n'est ajouté que si l'on a choisi « poisson » ou « insecte »
+if ($type != 'tous') {
+    $sql = $sql . "\n  AND type_creature = ?";
+    $valeurs[] = $type;
+}
+
+$sql = $sql . "\nGROUP BY creature.id_creature\nORDER BY prix_vente_creature DESC, nom_creature";
+
+$requete = $dbh->prepare($sql);
+$requete->execute($valeurs);
+$creatures = $requete->fetchAll(PDO::FETCH_ASSOC);
+
+
+// ---------- 3. Affichage ----------
+$noms_mois = [1 => 'Janvier', 2 => 'Février', 3 => 'Mars', 4 => 'Avril', 5 => 'Mai', 6 => 'Juin',
+              7 => 'Juillet', 8 => 'Août', 9 => 'Septembre', 10 => 'Octobre', 11 => 'Novembre', 12 => 'Décembre'];
+
+if ($hemisphere == 'NH') {
+    $nom_hemisphere = 'Nord';
+} else {
+    $nom_hemisphere = 'Sud';
+}
+
+include 'includes/header.php';
 ?>
 <div class="page-head">
     <h1>Poissons et insectes disponibles</h1>
@@ -60,61 +91,83 @@ require __DIR__ . '/includes/header.php';
 <form class="filters" method="get">
     <label>Type
         <select name="type">
-            <option value="tous" <?= $type === 'tous' ? 'selected' : '' ?>>Tous</option>
-            <option value="poisson" <?= $type === 'poisson' ? 'selected' : '' ?>>Poissons</option>
-            <option value="insecte" <?= $type === 'insecte' ? 'selected' : '' ?>>Insectes</option>
+            <option value="tous" <?php echo selectionne('tous', $type); ?>>Tous</option>
+            <option value="poisson" <?php echo selectionne('poisson', $type); ?>>Poissons</option>
+            <option value="insecte" <?php echo selectionne('insecte', $type); ?>>Insectes</option>
         </select>
     </label>
     <label>Hémisphère
         <select name="hemisphere">
-            <option value="NH" <?= $hemisphere === 'NH' ? 'selected' : '' ?>>Nord</option>
-            <option value="SH" <?= $hemisphere === 'SH' ? 'selected' : '' ?>>Sud</option>
+            <option value="NH" <?php echo selectionne('NH', $hemisphere); ?>>Nord</option>
+            <option value="SH" <?php echo selectionne('SH', $hemisphere); ?>>Sud</option>
         </select>
     </label>
     <label>Mois
         <select name="mois">
-            <?php foreach ($noms_mois as $n => $nom): ?>
-                <option value="<?= $n ?>" <?= $mois === $n ? 'selected' : '' ?>><?= $nom ?></option>
-            <?php endforeach; ?>
+            <?php
+            foreach ($noms_mois as $numero => $nom) {
+                echo "<option value='$numero' " . selectionne($numero, $mois) . ">$nom</option>";
+            }
+            ?>
         </select>
     </label>
     <label>Heure
         <select name="heure">
-            <?php for ($h = 0; $h < 24; $h++): ?>
-                <option value="<?= $h ?>" <?= $heure === $h ? 'selected' : '' ?>><?= sprintf('%02dh', $h) ?></option>
-            <?php endfor; ?>
+            <?php
+            for ($h = 0; $h < 24; $h++) {
+                echo "<option value='$h' " . selectionne($h, $heure) . ">" . afficherHeure($h) . "</option>";
+            }
+            ?>
         </select>
     </label>
     <div class="actions">
         <button type="submit">Rechercher</button>
-        <a class="btn-ghost" href="<?= e(url_creatures_maintenant()) ?>">Maintenant</a>
+        <a class="btn-ghost" href="creatures.php?type=tous&hemisphere=NH&mois=<?php echo date('n'); ?>&heure=<?php echo date('G'); ?>">Maintenant</a>
     </div>
 </form>
 
-<?php if ($error): ?>
-    <p class="alert">Erreur SQL : <?= e($error) ?></p>
-<?php else: ?>
-    <p class="count"><strong><?= count($rows) ?></strong> créature(s) · <?= $noms_mois[$mois] ?>, <?= sprintf('%02dh', $heure) ?>, hémisphère <?= $hemisphere === 'NH' ? 'Nord' : 'Sud' ?></p>
-    <div class="table-wrap">
-        <table class="data">
-            <thead><tr><th>Nom</th><th>Type</th><th>Lieu</th><th>Ombre</th><th>Météo</th><th class="num">Prix de vente</th></tr></thead>
-            <tbody>
-            <?php foreach ($rows as $r): ?>
-                <tr>
-                    <td class="strong"><?= e(ucfirst($r['nom_creature'])) ?></td>
-                    <td><span class="tag tag-<?= e($r['type_creature']) ?>"><?= e($r['type_creature']) ?></span></td>
-                    <td><?= e($r['nom_lieu']) ?></td>
-                    <td><?= e($r['ombre'] ?? '—') ?></td>
-                    <td><?= e($r['meteo']) ?></td>
-                    <td class="num"><?= number_format($r['prix_vente_creature'], 0, ',', ' ') ?> clochettes</td>
-                </tr>
-            <?php endforeach; ?>
-            <?php if (!$rows): ?>
-                <tr><td colspan="6" class="empty">Aucune créature à cet instant.</td></tr>
-            <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
-<?php endif; ?>
+<p class="count"><strong><?php echo count($creatures); ?></strong> créature(s) · <?php echo $noms_mois[$mois] . ', ' . afficherHeure($heure) . ', hémisphère ' . $nom_hemisphere; ?></p>
+<div class="table-wrap">
+    <table class="data">
+        <thead><tr><th>Nom</th><th>Type</th><th>Lieu</th><th>Ombre</th><th>Météo</th><th class="num">Prix de vente</th></tr></thead>
+        <tbody>
+        <?php
+        // ucfirst : première lettre en majuscule ; number_format(4000, 0, ',', ' ') affiche « 4 000 »
+        foreach ($creatures as $creature) {
+            // Les insectes n'ont pas d'ombre (NULL dans la base)
+            if ($creature['ombre'] == null) {
+                $ombre = '—';
+            } else {
+                $ombre = $creature['ombre'];
+            }
 
-<?php require __DIR__ . '/includes/footer.php'; ?>
+            echo "<tr>
+                <td class='strong'>" . htmlspecialchars(ucfirst($creature['nom_creature'])) . "</td>
+                <td><span class='tag tag-" . $creature['type_creature'] . "'>" . $creature['type_creature'] . "</span></td>
+                <td>" . htmlspecialchars($creature['nom_lieu']) . "</td>
+                <td>" . htmlspecialchars($ombre) . "</td>
+                <td>" . htmlspecialchars($creature['meteo']) . "</td>
+                <td class='num'>" . number_format($creature['prix_vente_creature'], 0, ',', ' ') . " clochettes</td>
+            </tr>";
+        }
+        if (count($creatures) == 0) {
+            echo "<tr><td colspan='6' class='empty'>Aucune créature à cet instant.</td></tr>";
+        }
+        ?>
+        </tbody>
+    </table>
+</div>
+
+<section class="sql-panel" id="sql">
+    <div class="sql-head">
+        <h2>Requêtes SQL exécutées</h2>
+        <p>Action utilisateur → paramètres GET → requête SQL → résultat affiché</p>
+    </div>
+    <div class="sql-url">
+        <span>URL reçue</span>
+        <code><?php echo htmlspecialchars($_SERVER['REQUEST_URI']); /* adresse demandée par le navigateur */ ?></code>
+    </div>
+    <?php afficherRequete('Créatures disponibles à cet instant', $sql, $valeurs, count($creatures)); ?>
+</section>
+
+<?php include 'includes/footer.php'; ?>

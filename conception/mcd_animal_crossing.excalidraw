@@ -6,10 +6,10 @@
   {
    "id": "rectangle_0_6305",
    "type": "rectangle",
-   "x": 36,
-   "y": 90.0,
-   "width": 111,
-   "height": 114,
+   "x": 45,
+   "y": 100.0,
+   "width": 102,
+   "height": 94,
    "angle": 0,
    "strokeColor": "#1864ab",
    "backgroundColor": "#e7f5ff",
@@ -42,9 +42,9 @@
   {
    "id": "text_1_1791",
    "type": "text",
-   "x": 36,
-   "y": 99.0,
-   "width": 111,
+   "x": 45,
+   "y": 109.0,
+   "width": 102,
    "height": 22.5,
    "angle": 0,
    "strokeColor": "#1864ab",
@@ -81,9 +81,9 @@
   {
    "id": "line_2_6991",
    "type": "line",
-   "x": 36,
-   "y": 126.0,
-   "width": 111,
+   "x": 45,
+   "y": 136.0,
+   "width": 102,
    "height": 0,
    "angle": 0,
    "strokeColor": "#1864ab",
@@ -112,7 +112,7 @@
      0
     ],
     [
-     111,
+     102,
      0
     ]
    ],
@@ -125,10 +125,10 @@
   {
    "id": "text_3_1614",
    "type": "text",
-   "x": 50,
-   "y": 132.0,
-   "width": 81.0,
-   "height": 56.2,
+   "x": 59,
+   "y": 142.0,
+   "width": 72.0,
+   "height": 37.5,
    "angle": 0,
    "strokeColor": "#1e1e1e",
    "backgroundColor": "transparent",
@@ -150,8 +150,8 @@
    "updated": 1791792000000,
    "link": null,
    "locked": false,
-   "text": "id_lieu\nnom_lieu\nzone_lieu",
-   "originalText": "id_lieu\nnom_lieu\nzone_lieu",
+   "text": "id_lieu\nnom_lieu",
+   "originalText": "id_lieu\nnom_lieu",
    "fontSize": 15,
    "fontFamily": 3,
    "textAlign": "left",
@@ -159,13 +159,13 @@
    "containerId": null,
    "lineHeight": 1.25,
    "autoResize": true,
-   "baseline": 52
+   "baseline": 33
   },
   {
    "id": "line_4_7851",
    "type": "line",
-   "x": 50,
-   "y": 150.5,
+   "x": 59,
+   "y": 160.5,
    "width": 63.0,
    "height": 0,
    "angle": 0,

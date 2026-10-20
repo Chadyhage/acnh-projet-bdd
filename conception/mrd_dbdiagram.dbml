@@ -5,7 +5,6 @@
 Table lieu {
   id_lieu int [pk, increment, not null]
   nom_lieu varchar(120) [not null, unique, note: 'texte du Google Sheet (Where/How)']
-  zone_lieu varchar(20) [not null, note: 'regroupement : Mer, Rivière, Étang…']
 }
 
 Table creature {
@@ -37,14 +36,13 @@ Table disponibilite {
   hemisphere char(2) [not null, note: 'NH (nord) / SH (sud)']
   mois int [not null]
   heure_debut int [not null, note: 'incluse']
-  heure_fin int [not null, note: 'exclue ; plus petite que heure_debut si la plage passe minuit']
+  heure_fin int [not null, note: 'exclue ; une plage qui passe minuit est coupée en deux lignes']
 
   indexes {
     (id_creature, hemisphere, mois, heure_debut) [unique]
-    (hemisphere, mois) [name: 'idx_dispo_moment', note: 'recherche « disponible à l\'instant T »']
   }
 
-  Note: 'Contraintes CHECK : (hemisphere IN (\'NH\', \'SH\')) ; (mois BETWEEN 1 AND 12) ; (heure_debut BETWEEN 0 AND 23 AND heure_fin BETWEEN 0 AND 24)'
+  Note: 'Contraintes CHECK : (hemisphere IN (\'NH\', \'SH\')) ; (mois BETWEEN 1 AND 12) ; (heure_debut >= 0 AND heure_debut < heure_fin AND heure_fin <= 24)'
 }
 
 Table categorie {
@@ -68,10 +66,6 @@ Table meuble {
   points_hha int [not null]
   version_ajout_meuble varchar(10) [not null]
   id_interne int [not null, unique, note: 'Internal ID du jeu']
-
-  indexes {
-    (catalogue) [name: 'idx_catalogue']
-  }
 
   Note: 'Contraintes CHECK : (catalogue IN (\'For sale\', \'Not for sale\', \'Not in catalog\', \'Seasonal\'))'
 }
@@ -122,10 +116,10 @@ Table villageois {
 }
 
 Ref: creature.id_lieu > lieu.id_lieu
-Ref: disponibilite.id_creature > creature.id_creature [delete: cascade]
+Ref: disponibilite.id_creature > creature.id_creature
 Ref: meuble.id_categorie > categorie.id_categorie
-Ref: proposer.id_meuble > meuble.id_meuble [delete: cascade]
-Ref: proposer.id_saison > saison.id_saison [delete: cascade]
+Ref: proposer.id_meuble > meuble.id_meuble
+Ref: proposer.id_saison > saison.id_saison
 Ref: villageois.id_espece > espece.id_espece
 Ref: villageois.id_personnalite > personnalite.id_personnalite
 

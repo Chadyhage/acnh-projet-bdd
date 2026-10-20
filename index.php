@@ -1,16 +1,9 @@
 <?php
-require_once __DIR__ . '/includes/db.php';
+require_once 'config.php';
 
-$page_title = 'Accueil';
-$active     = 'index';
-
-$cards = [
-    [url_creatures_maintenant(), 'Poissons & insectes', 'Ce qui peut être attrapé selon l\'hémisphère, le mois et l\'heure.', 'creature · lieu · disponibilite'],
-    [URL_MEUBLES, 'Meubles de saison', 'Meubles proposés pendant une saison ou un événement (Halloween, Toy Day…), par catégorie.', 'meuble · categorie · saison · proposer'],
-    [URL_VILLAGEOIS, 'Villageois', 'Consultation et recherche par nom, espèce, personnalité et genre.', 'villageois · espece · personnalite'],
-];
-
-require __DIR__ . '/includes/header.php';
+$titre_page = 'Accueil';
+$page_active = 'index';
+include 'includes/header.php';
 ?>
 <div class="page-head">
     <h1>Animal Crossing : New Horizons — base de données</h1>
@@ -18,13 +11,21 @@ require __DIR__ . '/includes/header.php';
 </div>
 
 <div class="home-grid">
-    <?php foreach ($cards as [$href, $title, $desc, $tables]): ?>
-        <a class="home-card" href="<?= e($href) ?>">
-            <h2><?= e($title) ?></h2>
-            <p><?= e($desc) ?></p>
-            <span class="home-tables"><?= e($tables) ?></span>
-        </a>
-    <?php endforeach; ?>
+    <a class="home-card" href="creatures.php?type=tous&hemisphere=NH&mois=<?php echo date('n'); ?>&heure=<?php echo date('G'); ?>">
+        <h2>Poissons &amp; insectes</h2>
+        <p>Ce qui peut être attrapé selon l'hémisphère, le mois et l'heure.</p>
+        <span class="home-tables">creature · lieu · disponibilite</span>
+    </a>
+    <a class="home-card" href="meubles.php?saison=toutes&categorie=toutes">
+        <h2>Meubles de saison</h2>
+        <p>Meubles proposés pendant une saison ou un événement (Halloween, Toy Day…), par catégorie.</p>
+        <span class="home-tables">meuble · categorie · saison · proposer</span>
+    </a>
+    <a class="home-card" href="villageois.php?nom=&espece=toutes&personnalite=toutes&genre=tous">
+        <h2>Villageois</h2>
+        <p>Consultation et recherche par nom, espèce, personnalité et genre.</p>
+        <span class="home-tables">villageois · espece · personnalite</span>
+    </a>
 </div>
 
-<?php require __DIR__ . '/includes/footer.php'; ?>
+<?php include 'includes/footer.php'; ?>
