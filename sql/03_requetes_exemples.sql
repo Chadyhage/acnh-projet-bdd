@@ -1,150 +1,100 @@
 -- =====================================================================
--- Requêtes du site, avec des valeurs d'exemple (à exécuter dans phpMyAdmin,
--- onglet SQL, après l'import de la base)
+-- Toutes les requêtes du site, avec des valeurs d'exemple
+-- (à exécuter dans phpMyAdmin, onglet SQL, après l'import de la base).
 --
--- Dans le PHP, chaque valeur écrite en dur ici ('NH', 10, 18…) est un
--- paramètre de requête préparée PDO (:hemisphere, :mois, :heure…) rempli
--- avec la valeur reçue dans l'URL (GET), après vérification.
--- Exemple : creatures.php?type=poisson&hemisphere=NH&mois=10&heure=18
+-- Dans le PHP, chaque valeur écrite en dur ici ('NH', 10, 18…) est un paramètre
+-- de requête préparée PDO (:hemisphere, :mois, :heure…), rempli avec la valeur
+-- reçue dans l'URL (GET) après vérification. Le site n'exécute pas d'autre requête.
 -- =====================================================================
 USE acnh;
 
 -- ---------------------------------------------------------------------
--- 1. Poissons et insectes disponibles à un instant T
---    Page : creatures.php?type=poisson&hemisphere=NH&mois=10&heure=18
---    Une ligne de DISPONIBILITE = un créneau [heure_debut ; heure_fin[ d'un mois.
---    Un créneau qui passe minuit (ex. 16 h -> 9 h) a heure_debut > heure_fin.
---    Résultat : 32 poissons (coelacanth et golden trout en tête, 15 000 clochettes).
+-- Page « Poissons et insectes » (creatures.php)
+-- Une ligne de disponibilite = un créneau [heure_debut ; heure_fin[ d'un mois.
+-- Un créneau qui passe minuit (ex. 19 h -> 4 h) a heure_debut > heure_fin :
+-- l'heure doit alors être après le début OU avant la fin.
 -- ---------------------------------------------------------------------
-SELECT c.nom_creature, c.type_creature, l.nom_lieu, l.zone_lieu, c.meteo, c.prix_vente_creature
+
+-- Requête 1 : les créatures disponibles à un instant T
+--   URL : creatures.php?type=poisson&hemisphere=NH&mois=10&heure=18
+--   La ligne « AND c.type_creature = … » n'est ajoutée que si le filtre Type est rempli.
+--   Résultat : 32 poissons (coelacanth et golden trout en tête, 15 000 clochettes).
+SELECT c.nom_creature, c.type_creature, l.nom_lieu, c.prix_vente_creature
 FROM creature c
-JOIN lieu l ON l.id_lieu = c.id_lieu
-WHERE EXISTS (SELECT 1 FROM disponibilite d
-              WHERE d.id_creature = c.id_creature
-                AND d.hemisphere = 'NH'
-                AND d.mois = 10
-                AND (   (d.heure_debut < d.heure_fin AND 18 >= d.heure_debut AND 18 < d.heure_fin)
-                     OR (d.heure_debut > d.heure_fin AND (18 >= d.heure_debut OR 18 < d.heure_fin))))
+JOIN lieu l          ON l.id_lieu = c.id_lieu
+JOIN disponibilite d ON d.id_creature = c.id_creature
+WHERE d.hemisphere = 'NH'
+  AND d.mois = 10
+  AND (   (d.heure_debut < d.heure_fin AND 18 >= d.heure_debut AND 18 < d.heure_fin)
+       OR (d.heure_debut > d.heure_fin AND (18 >= d.heure_debut OR 18 < d.heure_fin)))
   AND c.type_creature = 'poisson'
 ORDER BY c.prix_vente_creature DESC, c.nom_creature;
 
--- ---------------------------------------------------------------------
--- 2. Résumé « Où chercher » de la même page : nombre de créatures et meilleur
---    prix par zone (jointure + sous-requête EXISTS + filtres + GROUP BY + ORDER BY).
---    C'est la requête complexe présentée dans le dossier (partie 6).
---    Page : creatures.php?hemisphere=NH&mois=10&heure=18&meteo=pluie
---    Le filtre météo « il pleut » retire les insectes qui fuient la pluie.
---    Résultat : Mer/poisson 15 (15 000) ; Rivière/poisson 13 (15 000) ;
---    Étang/poisson 4 (4 000) ; Sol/insecte 4 (600) ; Arbres/insecte 3 (2 500) ;
---    Rochers/insecte 3 (300) ; Autre/insecte 1 (70) ; Air/insecte 1 (60).
--- ---------------------------------------------------------------------
-SELECT l.zone_lieu, c.type_creature,
-       COUNT(*) AS nb,
-       MAX(c.prix_vente_creature) AS meilleur_prix
+-- Requête 2 (requête complexe du dossier) : où chercher ? nombre de créatures et meilleur prix par zone
+--   URL : creatures.php?hemisphere=NH&mois=10&heure=18   (sans filtre Type)
+--   Si le filtre Type est rempli, la même ligne « AND c.type_creature = … » est ajoutée
+--   (avec type=poisson : 3 zones, Mer 15, Rivière 13, Étang 4).
+--   Résultat : 10 zones, 54 créatures : Mer 15 (15 000) ; Rivière 13 (15 000) ; Sol 7 (1 500) ;
+--   Arbres 5 (2 500) ; Étang 4 (4 000) ; Rochers 3 (300) ; Air 3 (160) ; Fleurs 2 (1 000) ;
+--   Eau 1 (180) ; Autre 1 (70).
+SELECT l.zone_lieu, COUNT(*) AS nb, MAX(c.prix_vente_creature) AS meilleur_prix
 FROM creature c
-JOIN lieu l ON l.id_lieu = c.id_lieu
-WHERE EXISTS (SELECT 1 FROM disponibilite d
-              WHERE d.id_creature = c.id_creature
-                AND d.hemisphere = 'NH'
-                AND d.mois = 10
-                AND (   (d.heure_debut < d.heure_fin AND 18 >= d.heure_debut AND 18 < d.heure_fin)
-                     OR (d.heure_debut > d.heure_fin AND (18 >= d.heure_debut OR 18 < d.heure_fin))))
-  AND c.meteo <> 'Any except rain'
-GROUP BY l.zone_lieu, c.type_creature
-ORDER BY nb DESC, meilleur_prix DESC, l.zone_lieu, c.type_creature;
+JOIN lieu l          ON l.id_lieu = c.id_lieu
+JOIN disponibilite d ON d.id_creature = c.id_creature
+WHERE d.hemisphere = 'NH'
+  AND d.mois = 10
+  AND (   (d.heure_debut < d.heure_fin AND 18 >= d.heure_debut AND 18 < d.heure_fin)
+       OR (d.heure_debut > d.heure_fin AND (18 >= d.heure_debut OR 18 < d.heure_fin)))
+GROUP BY l.zone_lieu
+ORDER BY nb DESC, meilleur_prix DESC, l.zone_lieu;
 
 -- ---------------------------------------------------------------------
--- 3. Dernier mois pour attraper une créature : présente en octobre,
---    absente en novembre (page d'accueil et case « Dernier mois seulement »)
---    Résultat : 20 créatures.
+-- Page « Meubles de saison » (meubles.php)
 -- ---------------------------------------------------------------------
-SELECT c.nom_creature, c.type_creature, c.prix_vente_creature
-FROM creature c
-WHERE EXISTS     (SELECT 1 FROM disponibilite d
-                  WHERE d.id_creature = c.id_creature AND d.hemisphere = 'NH' AND d.mois = 10)
-  AND NOT EXISTS (SELECT 1 FROM disponibilite d
-                  WHERE d.id_creature = c.id_creature AND d.hemisphere = 'NH' AND d.mois = 11)
-ORDER BY c.prix_vente_creature DESC, c.nom_creature;
 
--- ---------------------------------------------------------------------
--- 4. Meubles de saison disponibles sur une période (dates réelles par année)
---    Page : meubles.php?du=2026-12-01&au=2026-12-31&hemisphere=NH
---    Une période chevauche [du ; au] si elle commence avant « au »
---    et finit après « du ».
---    Résultat : 99 lignes = 71 meubles différents dans 18 saisons ou événements
---    (un meuble peut appartenir à plusieurs saisons).
--- ---------------------------------------------------------------------
-SELECT e.nom_evenement, e.type_evenement, p.date_debut, p.date_fin,
-       m.nom_meuble, cat.nom_categorie, m.prix_achat
-FROM periode p
-JOIN evenement e   ON e.id_evenement = p.id_evenement
-JOIN proposer pr   ON pr.id_evenement = e.id_evenement
-JOIN meuble m      ON m.id_meuble = pr.id_meuble
-JOIN categorie cat ON cat.id_categorie = m.id_categorie
-WHERE p.hemisphere_periode = 'NH'
-  AND p.date_debut <= '2026-12-31'
-  AND p.date_fin >= '2026-12-01'
-ORDER BY p.date_debut, e.nom_evenement, m.nom_meuble;
-
--- ---------------------------------------------------------------------
--- 5. Meubles d'une saison / d'un événement, et ses deux prochaines dates
---    Page : meubles.php?evenement=<id de Halloween>&hemisphere=NH   (evenement=59)
---    Résultat : 15 meubles, puis les deux prochaines périodes de Halloween.
--- ---------------------------------------------------------------------
-SELECT m.nom_meuble, cat.nom_categorie, m.prix_achat, m.bricolable
+-- Requête 3 : les meubles disponibles sur une période
+--   URL : meubles.php?du=2026-12-01&au=2026-12-31&hemisphere=NH
+--   Une période chevauche [du ; au] si elle commence avant « au » et finit après « du ».
+--   DISTINCT : un meuble qui appartient à plusieurs saisons n'apparaît qu'une fois.
+--   Résultat : 71 meubles.
+SELECT DISTINCT m.nom_meuble, cat.nom_categorie, m.prix_achat
 FROM meuble m
 JOIN categorie cat ON cat.id_categorie = m.id_categorie
 JOIN proposer pr   ON pr.id_meuble = m.id_meuble
-JOIN evenement e   ON e.id_evenement = pr.id_evenement
-WHERE e.nom_evenement = 'Halloween'
+JOIN periode p     ON p.id_evenement = pr.id_evenement
+WHERE p.hemisphere_periode = 'NH'
+  AND p.date_debut <= '2026-12-31'
+  AND p.date_fin >= '2026-12-01'
 ORDER BY m.nom_meuble;
 
-SELECT p.date_debut, p.date_fin
-FROM periode p
-JOIN evenement e ON e.id_evenement = p.id_evenement
-WHERE e.nom_evenement = 'Halloween'
-  AND p.hemisphere_periode = 'NH'
-  AND p.date_fin >= '2026-10-23'          -- date du jour
-ORDER BY p.date_debut
-LIMIT 2;
+-- ---------------------------------------------------------------------
+-- Page « Villageois » (villageois.php)
+-- ---------------------------------------------------------------------
 
--- ---------------------------------------------------------------------
--- 6. Catalogue : meubles ayant au moins une variante bleue, fabricables,
---    avec leur nombre de variantes (GROUP BY)
---    Page : meubles.php?vue=catalogue&couleur=<id de Blue>&bricolable=1&tri=variantes
---    Résultat : 116 meubles.
--- ---------------------------------------------------------------------
-SELECT m.nom_meuble, cat.nom_categorie, m.prix_achat, COUNT(v.id_variante) AS nb_variantes
-FROM meuble m
-JOIN categorie cat ON cat.id_categorie = m.id_categorie
-JOIN variante v    ON v.id_meuble = m.id_meuble
-WHERE m.bricolable = 1
-  AND EXISTS (SELECT 1 FROM variante vc
-              JOIN colorer co ON co.id_variante = vc.id_variante
-              JOIN couleur cl ON cl.id_couleur = co.id_couleur
-              WHERE vc.id_meuble = m.id_meuble AND cl.nom_couleur = 'Blue')
-GROUP BY m.id_meuble, m.nom_meuble, cat.nom_categorie, m.prix_achat
-ORDER BY nb_variantes DESC, m.nom_meuble;
+-- Requêtes 4, 5 et 6 : les choix des listes déroulantes
+--   Résultat : 35 espèces, 8 personnalités, 6 styles. L'id est envoyé dans l'URL, le nom est affiché.
+--   Dans le bloc en bas de la page Villageois, ces requêtes et la recherche sont numérotées 1 à 4.
+SELECT id_espece, nom_espece FROM espece ORDER BY nom_espece;
+SELECT id_personnalite, nom_personnalite FROM personnalite ORDER BY nom_personnalite;
+SELECT id_style, nom_style FROM style ORDER BY nom_style;
 
--- ---------------------------------------------------------------------
--- 7. Villageois par caractéristiques : chats qui aiment le style « Cute »
---    Page : villageois.php?espece=<id de Cat>&style=<id de Cute>   (espece=11&style=2)
---    Résultat : 5 villageois sur 417 (Bob, Felicity, Merry, Rosie, Tangy).
---    Le PHP n'ajoute une condition que pour les filtres remplis :
---    &genre=Female ajouterait  AND v.genre = 'Female'.
--- ---------------------------------------------------------------------
-SELECT v.nom_villageois, es.nom_espece, pe.nom_personnalite,
-       v.jour_anniversaire, v.mois_anniversaire
+-- Requête 7 : la recherche de villageois
+--   URL : villageois.php?espece=11&style=2   (11 = Cat, 2 = Cute)
+--   Une ligne AND est ajoutée pour chaque filtre rempli (espèce, personnalité, genre, style).
+--   « WHERE 1 = 1 » est toujours vrai : il permet d'ajouter chaque condition avec AND.
+--   Le style passe par la table associative aimer (un villageois aime 1 ou 2 styles).
+--   Résultat : 5 villageois (Bob, Felicity, Merry, Rosie, Tangy).
+SELECT v.nom_villageois, e.nom_espece, p.nom_personnalite, v.genre, v.jour_anniversaire, v.mois_anniversaire
 FROM villageois v
-JOIN espece es       ON es.id_espece = v.id_espece
-JOIN personnalite pe ON pe.id_personnalite = v.id_personnalite
-WHERE es.nom_espece = 'Cat'
-  AND EXISTS (SELECT 1 FROM aimer a JOIN style s ON s.id_style = a.id_style
-              WHERE a.id_villageois = v.id_villageois AND s.nom_style = 'Cute')
+JOIN espece e       ON e.id_espece = v.id_espece
+JOIN personnalite p ON p.id_personnalite = v.id_personnalite
+WHERE 1 = 1
+  AND v.id_espece = 11
+  AND v.id_villageois IN (SELECT a.id_villageois FROM aimer a WHERE a.id_style = 2)
 ORDER BY v.nom_villageois;
 
 -- ---------------------------------------------------------------------
--- 8. Contrôles d'intégrité (doivent tous renvoyer 0)
+-- Contrôles d'intégrité (doivent tous renvoyer 0)
 -- ---------------------------------------------------------------------
 -- Chaque créature est disponible au moins un mois dans chaque hémisphère
 SELECT COUNT(*) AS creatures_sans_disponibilite

@@ -13,9 +13,9 @@ recherches sont faites en SQL côté serveur, à partir de paramètres GET visib
 
 | Dossier | Contenu |
 |---|---|
-| `site/` | Le site PHP (PDO, requêtes préparées). Page d'accueil : `site/index.php` |
+| `site/` | Le site PHP (4 pages, PDO, requêtes préparées). Page d'accueil : `site/index.php` |
 | `bdd/` | `acnh_complet.sql` : la base complète (structure + données) ; `acnh_complet.sql.zip` : le même fichier compressé pour phpMyAdmin |
-| `sql/` | `01_schema.sql` : création des 21 tables ; `02_migration.sql` : remplissage des tables finales à partir des tables temporaires (copies des CSV) ; `03_requetes_exemples.sql` : les requêtes du site avec des valeurs d'exemple |
+| `sql/` | `01_schema.sql` : création des 21 tables ; `02_migration.sql` : remplissage des tables finales à partir des tables temporaires (copies des CSV) ; `03_requetes_exemples.sql` : toutes les requêtes du site, avec des valeurs d'exemple et le résultat attendu |
 | `migration/` | `import.php` : lance la migration complète (structure, chargement des CSV, remplissage) |
 | `data/` | `csv/` : les 8 onglets du Google Sheet utilisés, exportés en CSV |
 | `conception/` | MCD (Excalidraw et Merise Studio) et MRD (fichier DBML pour dbdiagram.io), avec leurs images |
@@ -41,9 +41,6 @@ recherches sont faites en SQL côté serveur, à partir de paramètres GET visib
 Paramètres de connexion (fichier `site/config.php`) : `localhost`, port `3306`, utilisateur
 `root`, mot de passe vide, base `acnh`. Ils peuvent être changés dans ce fichier ou par les
 variables d'environnement `DB_HOST`, `DB_PORT`, `DB_USER` et `DB_PASS`.
-Les images (poissons, meubles, villageois) viennent du site catalogue.ac : il faut une
-connexion Internet pour les voir.
-
 En ligne de commande, la migration se lance aussi avec `php migration/import.php`.
 
 ## Comment la migration fonctionne
@@ -63,28 +60,29 @@ lancement suivant sans l'option.
 
 ## Les pages du site
 
-| Page | Ce qu'elle permet | Paramètres GET |
-|---|---|---|
-| `index.php` | Aujourd'hui sur l'île : créatures de sortie à l'heure actuelle, saisons et événements en cours, anniversaires du mois | `hemisphere` |
-| `creatures.php` | Poissons et insectes disponibles à un instant T, résumé par zone | `type`, `hemisphere`, `mois`, `heure`, `zone`, `meteo`, `depart`, `q`, `tri` |
-| `creature.php` | Fiche d'une créature et son calendrier sur 12 mois | `id`, `hemisphere` |
-| `meubles.php` | Meubles de saison par période ou par saison/événement ; catalogue complet filtrable | `du`, `au`, `type_evt`, `evenement`, `hemisphere`, `categorie`, `q`, `vue`, `couleur`, `bricolable`, `saisonnier`, `tri`, `page` |
-| `meuble.php` | Fiche d'un meuble : variantes, couleurs, sources, saisons, villageois qui l'ont | `id`, `hemisphere` |
-| `villageois.php` | Recherche de villageois par espèce, personnalité, genre, loisir, style, couleur, mois d'anniversaire | `espece`, `personnalite`, `genre`, `loisir`, `style`, `couleur`, `mois`, `q`, `tri`, `page` |
-| `villageois_fiche.php` | Fiche d'un villageois et les meubles de sa maison | `id` |
+Le site ne fait que ce que demande le sujet : trois recherches, chacune avec quelques
+requêtes SQL simples (la liste complète est dans `sql/03_requetes_exemples.sql`).
 
-En bas de chaque page, le bloc **« Requêtes SQL de cette page »** affiche les requêtes
+| Page | Ce qu'elle permet | Paramètres GET | Requêtes |
+|---|---|---|---|
+| `index.php` | Accueil : liens vers les trois recherches | aucun | aucune |
+| `creatures.php` | Poissons et insectes disponibles à un instant T, et résumé « Où chercher » par zone | `type`, `hemisphere`, `mois`, `heure` | 2 (liste ; nombre et meilleur prix par zone avec GROUP BY) |
+| `meubles.php` | Meubles de saison disponibles sur une période | `du`, `au`, `hemisphere` | 1 |
+| `villageois.php` | Recherche de villageois par espèce, personnalité, genre et style aimé | `espece`, `personnalite`, `genre`, `style` | 4 (3 listes déroulantes ; la recherche) |
+
+En bas de chaque page de recherche, le bloc **« Requêtes SQL de cette page »** affiche les requêtes
 exécutées et la valeur de leurs paramètres : on voit directement le lien
 action de l'utilisateur, paramètres reçus, requête SQL, résultat affiché.
 
 ## Choix techniques
 
 - **PHP + PDO** : une seule connexion `$dbh` (fichier `config.php`), requêtes préparées avec
-  paramètres nommés ; aucune valeur de l'URL n'est collée dans le SQL.
+  paramètres nommés ; le code ne colle aucune valeur de l'URL dans le texte SQL, PDO l'échappe
+  avant de l'insérer.
 - **Paramètres contrôlés** : chaque paramètre GET est vérifié (liste de valeurs autorisées,
   nombre entre deux bornes, date valide) ; une valeur inconnue est ignorée.
-- **Filtres en SQL** : chaque filtre rempli ajoute une condition au `WHERE` ; le JavaScript
-  n'est utilisé nulle part pour filtrer.
+- **Filtres en SQL** : chaque filtre rempli ajoute une condition au `WHERE` ; le site n'utilise
+  aucun JavaScript.
 - **MySQL 8 (InnoDB)** : clés étrangères, contraintes `CHECK`, `UNIQUE` et index sur les
   colonnes de recherche ; les requêtes respectent le mode `ONLY_FULL_GROUP_BY` de MySQL, et la
   migration s'exécute en mode strict (une valeur impossible à convertir arrête l'import).
@@ -95,4 +93,3 @@ action de l'utilisateur, paramètres reçus, requête SQL, résultat affiché.
 - Google Sheet : <https://docs.google.com/spreadsheets/d/13d_LAJPlxMa_DubPTuirkIV4DERBMXbrWQsmSh8ReK4>
   (onglets Fish, Insects, Villagers, Housewares, Miscellaneous, Wall-mounted, Ceiling Decor,
   Seasons and Events).
-- Images : <https://nh-cdn.catalogue.ac/> (même adresse que les formules `=IMAGE()` du Google Sheet).
